@@ -1,7 +1,7 @@
 import configparser
 import os
 
-_CONFIG_FILE = os.environ.get("CORE_CONFIG_FILE") or ""
+_CONFIG_FILE = os.environ.get("CORE_CONFIG_FILE", "")
 _CONFIG = configparser.ConfigParser()
 
 class ConfigReader:
