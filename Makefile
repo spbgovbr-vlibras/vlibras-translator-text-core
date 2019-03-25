@@ -4,7 +4,6 @@ UTILS_PYCACHE	:=	"$(CURR_DIR)/core/utils/__pycache__"
 CORE_CONFIG_FILE	:=	"$(CURR_DIR)/config/settings.ini"
 
 start:
-	@echo "Starting translator core..."
 	@CORE_CONFIG_FILE=$(CORE_CONFIG_FILE) python3 core/worker.py
 
 dev:
