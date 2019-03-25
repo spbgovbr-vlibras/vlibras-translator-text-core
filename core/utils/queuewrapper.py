@@ -83,6 +83,6 @@ class QueueWrapper:
     def close_connection(self):
         try:
             self.__channel.stop_consuming()
-            self.__receiver_connection.close()
+            self.__connection.close()
         except:
             print("Connection already closed")
