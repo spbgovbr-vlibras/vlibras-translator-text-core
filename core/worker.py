@@ -2,6 +2,8 @@
 
 import json
 
+import PortGlosa
+
 from utils import configreader
 from utils import queuewrapper
 
@@ -10,13 +12,12 @@ class Worker:
     def __init__(self):
         self.__queue_wrapper = queuewrapper.QueueWrapper()
 
-    def __translate(self, text):
-        return text.upper()
-
     def __process_message(self, channel, method, properties, body):
         try:
             payload = json.loads(body)
-            translation = self.__translate(payload.get("text", ""))
+            print("[+] Translating... ", end='')
+            translation = PortGlosa.traduzir(payload.get("text", ""))
+            print("\033[92mdone\033[0m")
 
             self.__queue_wrapper.send_to_queue(
                 properties.correlation_id,
