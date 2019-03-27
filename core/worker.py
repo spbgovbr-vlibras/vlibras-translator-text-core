@@ -23,11 +23,15 @@ class Worker:
                 properties.reply_to, 
                 json.dumps({ "translation": translation }))
 
+            channel.basic_ack(delivery_tag=method.delivery_tag)
+
         except json.JSONDecodeError as error:
             self.__queue_wrapper.send_to_queue(
                 properties.correlation_id,
                 properties.reply_to,
                 json.dumps({ "error": str(error) }))
+
+            channel.basic_nack(delivery_tag=method.delivery_tag)
 
     def start_consuming(self, queue):
         self.__queue_wrapper.consume_from_queue(queue, self.__process_message)
