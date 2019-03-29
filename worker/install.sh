@@ -4,13 +4,13 @@ LINUX_PACKAGES="build-essential python3-pip"
 
 function install_system_dependencies {
   echo "Installing required system dependencies..."
-  (sudo apt --assume-yes install $LINUX_PACKAGES) || return 1
+  (apt --assume-yes install $LINUX_PACKAGES) || return 1
   return 0
 }
 
 function install_python_packages {
   echo -e "\nInstalling required python packages..."
-  (sudo -H python3 -m pip install -r requirements.txt) || return 1
+  (python3 -m pip install -r requirements.txt) || return 1
   return 0
 }
 

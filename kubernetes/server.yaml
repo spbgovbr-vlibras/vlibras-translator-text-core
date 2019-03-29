@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+#kubectl expose deployment translatorapi --port=80 --type=LoadBalancer
+kind: Deployment
+metadata:
+  name: translatorcore
+  labels:
+    app: translatorcore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: translatorcore
+  template:
+    metadata:
+      labels:
+        app: translatorcore
+    spec:
+      containers:
+        - image: vlibras/translator-core:04
+          name: translatorcore
+          env:
+            - name: AMQP_HOST
+              value: "10.11.247.75"
+          ports:
+            - containerPort: 80
+              name: vlibras
+          resources:
+            requests:
+              cpu: 600m
+              memory: 1.5Gi
+          #readinessProbe:
+          #  httpGet:
+          #    path: /healthcheck
+          #    port: 80
+          #  initialDelaySeconds: 30
+          #  periodSeconds: 30
+      hostNetwork: true
+

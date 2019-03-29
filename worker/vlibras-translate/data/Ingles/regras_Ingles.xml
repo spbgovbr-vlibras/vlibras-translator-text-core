@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!-- Regras para ASL-->
+<translation>
+	<morphological>
+		<rule name = "NPR"><!-- Eliminar artigo definido-->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>NPR</title>
+				<specific>aux_verb</specific>
+				<action>remove</action>
+			</class>
+		</rule>
+		<rule name = "D"><!-- Eliminar artigo definido-->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>D</title>
+				<specific>a</specific>
+				<action>remove</action>
+			</class>
+		</rule>
+		<rule name = "D-UM"><!-- Eliminar artigo indefinido-->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>D</title>
+				<specific>a</specific>
+				<action>remove</action>
+			</class>
+		</rule>
+		<rule name = "POS"><!-- Eliminar 's -->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>POS</title>
+				<action>remove</action>
+			</class>
+		</rule>
+		<!-- <rule name = "PRP$"> -->
+			<!-- pronome possessivo -->
+			<!-- <active>true</active>
+			<count>1</count>
+			<class>
+				<title>PRP$</title>
+				<action>change_pro$</action>
+				<newprop>PRP</newprop>
+			</class>
+		</rule> -->
+		<rule name = "ADV"><!-- Eliminar 's -->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>ADV</title>
+				<action>change_adv</action>
+			</class>
+		</rule>
+		<rule name = "VB-P"><!-- verbo no infinitivo - 3ª pessoa presente -->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>VB-P</title>
+				<action>change_vb</action>
+				<newprop>VB</newprop>
+			</class>
+		</rule>
+		<rule name = "VB-D"><!-- verbo no infinitivo - 3ª pessoa presente -->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>VB-D</title>
+				<action>change_vb</action>
+				<newprop>VB</newprop>
+			</class>
+		</rule>
+		<rule name = "VBN"><!-- verbo no infinitivo - 3ª pessoa presente -->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>VBN</title>
+				<action>change_vb</action>
+				<newprop>VB</newprop>
+			</class>
+		</rule>
+		<rule name = "VB-G"><!-- verbo no infinitivo - 3ª pessoa presente -->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>VB-G</title>
+				<action>change_vb</action>
+				<newprop>VB</newprop>
+			</class>
+		</rule>
+		<rule name = "TO"><!-- verbo no infinitivo - 3ª pessoa presente -->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>TO</title>
+				<action>remove</action>
+			</class>
+		</rule>
+		<rule name = "WRB"><!-- WHY, WHERE -->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>WRB</title>
+				<action>final</action>
+			</class>
+		</rule>
+		<rule name = "WP"><!-- WHAT -->
+			<active>true</active>
+			<count>1</count>
+			<class>
+				<title>WP</title>
+				<specific>is_what</specific>
+				<action>remove</action>
+			</class>
+		</rule>
+	</morphological>
+	<syntactic>
+	</syntactic>
+</translation>

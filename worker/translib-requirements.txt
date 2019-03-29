@@ -1,0 +1,4 @@
+nltk
+flask-cors
+nltk_tgrep
+unidecode
