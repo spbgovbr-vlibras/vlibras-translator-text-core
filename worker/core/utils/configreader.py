@@ -2,7 +2,7 @@ import configparser
 import os
 
 _CONFIG_FILE = os.environ.get("CORE_CONFIG_FILE", "")
-_CONFIG = configparser.ConfigParser()
+_CONFIG = configparser.SafeConfigParser(os.environ)
 
 def load_configs(section):
     try:
