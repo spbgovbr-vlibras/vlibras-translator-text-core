@@ -73,7 +73,37 @@ Explain how to run the automated tests for this system.
 
 ## Deployment
 
-Add additional notes about how to deploy this on a live system.
+### Prerequisites
+
+To fully deployment this application its necessary to have instaled and configurated the Docker Engine (https://www.docker.com/) and Kubernetes Container Orchestration (https://kubernetes.io/)
+Accomplishing this task change to datacenter to another. Acess all links above to fullfil your needs. 
+
+### Instalation
+
+
+If you already RabbitMQ running on your cluster, skip the next steps.
+
+Once kubectl is installed and set, run the following commands:
+
+```sh
+kubectl apply -f kubernetes/rabbitmq.yaml
+kubectl expose deployment rabbitmq --type=ClusterIP
+```
+Following, this line starts up the RabbitMQ pod. You must configure a volume set to be used by it. By default it set to be used in a Google Cloud Plataform (GCP)
+
+Then , open the file server.yaml and edit these enviroment variables to match yours.
+
+```sh
+- name: AMQP_HOST
+  value: "RabbitMQ-ClusterIP"
+```
+
+Finally, starting the service is made by :
+
+```sh
+kubectl apply -f kubernetes/server.yaml
+kubectl expose deployment translatorapi --port=80 --type=LoadBalancer
+```
 
 ## Contributors
 
