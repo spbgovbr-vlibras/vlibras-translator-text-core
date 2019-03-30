@@ -9,7 +9,7 @@
 
 # VLibras Translator (Core)
 
-One Paragraph of project description goes here.
+VLibras Translation Service Core.
 
 ![Version](https://img.shields.io/badge/version-v0.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-GPLv3-blue.svg)
@@ -17,14 +17,14 @@ One Paragraph of project description goes here.
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
+- **[Getting Started](#getting-started)**
   - [System Requirements](#system-requirements)
   - [Prerequisites](#prerequisites)
   - [Installing](#installing)
-- [Running the Tests](#running-the-tests)
-- [Deployment](#deployment)
-- [Contributors](#contributors)
-- [License](#license)
+- **[Running the Tests](#running-the-tests)**
+- **[Deployment](#deployment)**
+- **[Contributors](#contributors)**
+- **[License](#license)**
 
 
 ## Getting Started
@@ -33,43 +33,67 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### System Requirements
 
-* OS: -  
+* OS: Ubuntu 18.04.2 LTS (Bionic Beaver)   
 * Processor: -  
 * Memory: -  
-* Graphics: - (remove if it is not a requirement)  
 * Storage: -
-
-For some projects, there may be more system requirements, be sure to add them.
 
 ### Prerequisites
 
-What things you need to install the software and how to install them.
+Before starting the installation, you need to install some prerequisites:
 
+[Translator Lib]()
+> Waiting for intallation guide
+
+<br/>
+
+[RabbitMQ](https://www.rabbitmq.com/)
+
+```sh
+wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
 ```
-Give examples
+
+```sh
+sudo apt install apt-transport-https
+```
+
+```sh
+echo "deb https://dl.bintray.com/rabbitmq/debian bionic main" | sudo tee /etc/apt/sources.list.d/bintray.rabbitmq.list
+```
+
+```sh
+sudo apt update
+```
+
+```sh
+sudo apt install -y rabbitmq-server
 ```
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running.
+After installing all the prerequisites, install the project by running the command:
 
-Say what the step will be
-
-```
-Give the example
+```sh
+cd worker/
 ```
 
-And repeat
-
-```
-until finished
+```sh
+sudo make install
 ```
 
-End with an example of getting some data out of the system or using it for a little demo.
+To test the installation, simply start the translation Core with the following command:
+
+```sh
+cd worker/
+```
+
+```sh
+make dev start
+```
 
 ## Running the Tests
 
-Explain how to run the automated tests for this system.
+> In writing process.
 
 ## Deployment
 
@@ -77,7 +101,8 @@ Add additional notes about how to deploy this on a live system.
 
 ## Contributors
 
-* Jhon Doe - <johndoe@lavid.ufpb.br>
+* Jonathan Brilhante - <jonathan.brilhante@lavid.ufpb.br>
+* Wesnydy Ribeiro - <wesnydy@lavid.ufpb.br>
 
 ## License
 
