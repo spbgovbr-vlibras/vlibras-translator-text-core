@@ -6,7 +6,6 @@ class QueueWrapper:
 
     def __init__(self):
         self.__rabbitcfg = configreader.load_configs("RabbitMQ")
-        self.__brokercfg = configreader.load_configs("MessageBroker")
         self.__add_credentials()
         self.__configure_blocking_connection()
         self.__configure_channel()
@@ -59,18 +58,7 @@ class QueueWrapper:
 
     def consume_from_queue(self, queue, callback):
         if self.__channel is not None:
-            self.__channel.exchange_declare(
-                exchange=self.__brokercfg.get("ExchangeName"),
-                exchange_type=self.__brokercfg.get("ExchangeType"),
-                durable=True)
-
             self.__channel.queue_declare(queue=queue, durable=True)
-
-            self.__channel.queue_bind(
-                exchange=self.__brokercfg.get("ExchangeName"),
-                routing_key=self.__brokercfg.get("RoutingKey"),
-                queue=queue)
-
             self.__channel.basic_qos(prefetch_count=1)
             self.__channel.basic_consume(callback, queue=queue, no_ack=False)
 

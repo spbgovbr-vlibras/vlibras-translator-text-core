@@ -52,7 +52,7 @@ if __name__ == "__main__":
         worker = Worker()
         print("[*] Translation Worker Started")
         print("[*] Press CTRL+C to Exit\n")
-        worker.start_consuming(workercfg.get("WorkerQueue"))
+        worker.start_consuming(workercfg.get("TranslatorQueue"))
 
     except KeyboardInterrupt:
         print("[*] Exiting...")
