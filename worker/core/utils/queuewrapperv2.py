@@ -1,4 +1,5 @@
 import pika
+import retry
 
 import configreader
 
@@ -6,11 +7,13 @@ class QueueWrapper:
 
     def __init__(self):
         self.__rabbitcfg = configreader.load_configs("RabbitMQ")
+        self.__connection = None
+        self.__channel = None
 
-    def __open_asynchronous_connection(self):
+    def __open_blocking_connection(self):
         credentials = pika.PlainCredentials(
-            self.__rabbitcfg.get("Username", "guest"),
-            self.__rabbitcfg.get("Password", "guest"))
+            username=self.__rabbitcfg.get("Username", "guest"),
+            password=self.__rabbitcfg.get("Password", "guest"))
 
         connection_params = pika.ConnectionParameters(
             host=self.__rabbitcfg.get("Host", "localhost"),
@@ -19,78 +22,52 @@ class QueueWrapper:
             heartbeat=0)
 
         print("Connecting to RabbitMQ")
-        return pika.SelectConnection(
-            parameters=connection_params,
-            on_open_callback=self.__on_connection_open,
-            on_open_error_callback=self.__on_connection_open_error,
-            on_close_callback=self.__on_connection_closed)
+        return pika.BlockingConnection(connection_params)
 
-     def __close_asynchronous_connection(self):
-        print("Closing connection with RabbitMQ")
-        if not (self.__connection.is_closing or self.__connection.is_closed):
-            self.__connection.close()
-
-    def __on_connection_open(self, _unused_connection):
-        print("Creating a new channel")
-        self.__connection.channel(on_open_callback=self.__on_channel_open)
-
-    def __on_connection_open_error(self, _unused_connection, error):
-        print("Connection open failed: %s", error)
-        self.__stop()
-
-    def __on_connection_closed(self, _unused_connection, error):
-        print("Connection closed, reconnect necessary: %s", error)
-        self.__channel = None
-        self.__stop()
-
-    def __on_channel_open(self, channel):
-        print("Channel opened")
-        self.__channel = channel
-        self.__channel.add_on_close_callback(self.__on_channel_closed)
-        self.__setup_queue()
-
-    def __on_channel_closed(self, _unused_channel, error):
-        print("Channel was closed")
-        self.__close_asynchronous_connection()
-
-    def __setup_queue(self):
-        print("Declaring queue translate.to_text")
-        self.__channel.queue_declare(
-            queue="translate.to_text",
-            durable=True
-            callback=self.__on_queue_declareok)
-
-    def __on_queue_declareok(self, _unused_frame):
-        self.__channel.basic_qos(
-            prefetch_count=1,
-            callback=self.__on_basic_qos_ok)
-
-    def __on_basic_qos_ok(self, _unused_frame):
-        print("QOS set to: 1")
-        self.__start_consuming()
-
-    def __start_consuming(self):
-        print("Adding consumer cancellation callback")
-        self.__channel.add_on_cancel_callback(self.__on_consumer_cancelled)
-        self._consumer_tag = self.__channel.basic_consume(
-            queue="translate.to_text", 
-            callback=self.__on_message)
-
-    def __on_consumer_cancelled(self, method_frame):
-        print("Consumer was cancelled remotely, shutting down: %r", method_frame)
-        if self.__channel:
+    def __close_blocking_connection(self):
+        if self.__channel is not None:
+            self.__channel.stop_consuming()
             self.__channel.close()
 
-    def __stop_consuming(self):
-        if self.__channel:
-            self.__channel.basic_cancel(
-                consumer_tag=self.__consumer_tag,
-                callback=self.__on_cancelok)
+            try:
+                self.__connection.close()
+            except pika.exceptions.ConnectionWrongStateError:
+                print("Connection already closed")
 
-    def __on_cancelok(self, _unused_frame):
-        print("RabbitMQ acknowledged the cancellation of the consumer")
-        self.__channel.close()
+            self.__channel = None
+            self.__connection = None
 
-    def consume_from_queue(self):
-        self.__connection = self.__open_asynchronous_connection()
-        self.__connection.ioloop.start()
+    @retry(pika.exceptions.AMQPConnectionError, delay=5, jitter=(1,5))
+    def consume_from_queue(self, queue, on_message_callback):
+        self.__connection = self.__open_blocking_connection()
+        self.__channel = connection.channel()
+
+        self.__channel.basic_qos(prefetch_count=1)
+        self.__channel.queue_declare(queue, durable=True)
+        self.__channel.basic_consume(queue, callback=on_message_callback)
+
+        try:
+            self.__channel.start_consuming()
+        except pika.exceptions.ConnectionClosedByBroker:
+            print("Connection closed by broker")
+        except pika.exceptions.ReentrancyError:
+            print("StartConsuming called from a invalid scope")
+        except pika.exceptions.ChannelClosed:
+            print("Channel closed by broker")
+        finally:
+            self.__close_blocking_connection()
+
+    def publish_to_queue(self, route, payload, correlation_id):
+        if self.__channel is not None:
+            try:
+                properties = pika.BasicProperties(correlation_id=correlation_id)
+                self.__channel.basic_publish(
+                    exchange="",
+                    routing_key=route,
+                    body=payload,
+                    properties=properties)
+
+            except pika.exceptions.UnroutableError:
+                print("Unroutable message returned by the broker")
+            except pika.exceptions.NackError:
+                print("Message nack’ed by the broker")
