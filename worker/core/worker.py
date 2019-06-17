@@ -10,7 +10,8 @@ from utils import queuewrapper
 class Worker:
 
     def __init__(self):
-        self.__queue_wrapper = queuewrapper.QueueWrapper()
+        self.__consumer = queuewrapper.QueueConsumer()
+        self.__publisher = queuewrapper.QueuePublisher()
 
     def __process_message(self, channel, method, properties, body):
         try:
@@ -19,26 +20,28 @@ class Worker:
             translation = PortGlosa.traduzir(payload.get("text", ""))
             print("\033[92mdone\033[0m")
 
-            self.__queue_wrapper.send_to_queue(
-                properties.correlation_id,
-                properties.reply_to, 
-                json.dumps({ "translation": translation }))
+            self.__publisher.publish_to_queue(
+                properties.reply_to,
+                json.dumps({ "translation": translation }),
+                properties.correlation_id)
 
-            channel.basic_ack(delivery_tag=method.delivery_tag)
+            self.__publisher.publish_to_queue(
+                properties.reply_to,
+                json.dumps({ "translation": translation }),
+                properties.correlation_id)
 
         except json.JSONDecodeError as error:
-            self.__queue_wrapper.send_to_queue(
-                properties.correlation_id,
+            self.__publisher.publish_to_queue(
                 properties.reply_to,
-                json.dumps({ "error": str(error) }))
+                json.dumps({ "error": str(error) }),
+                properties.correlation_id)
 
-            channel.basic_nack(delivery_tag=method.delivery_tag)
+    def start(self, queue):
+        self.__consumer.consume_from_queue(queue, self.__process_message)
 
-    def start_consuming(self, queue):
-        self.__queue_wrapper.consume_from_queue(queue, self.__process_message)
-
-    def stop_consuming(self):
-        self.__queue_wrapper.close_connection()
+    def stop(self):
+        self.__consumer.close_connection()
+        self.__publisher.close_connection()
 
 if __name__ == "__main__":
 
@@ -52,10 +55,10 @@ if __name__ == "__main__":
         worker = Worker()
         print("[*] Translation Worker Started")
         print("[*] Press CTRL+C to Exit\n")
-        worker.start_consuming(workercfg.get("TranslatorQueue"))
+        worker.start(workercfg.get("TranslatorQueue"))
 
     except KeyboardInterrupt:
         print("[*] Exiting...")
-        worker.stop_consuming()
+        worker.stop()
         raise SystemExit(0)
     
