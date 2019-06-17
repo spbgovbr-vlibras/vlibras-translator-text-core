@@ -3,9 +3,6 @@ from retry import retry
 
 from utils import configreader
 
-import logging
-logging.basicConfig()
-
 class QueueWrapper:
 
     def __init__(self):
@@ -27,12 +24,11 @@ class QueueWrapper:
         self._connection = pika.BlockingConnection(connection_params)
 
     def close_connection(self):
-        try:
-            self._connection.close()
-        except pika.exceptions.ConnectionWrongStateError:
-            print("Connection already closed")
-        finally:
-            self._connection = None
+        if self._connection is not None:
+            try:
+                self._connection.close()
+            except pika.exceptions.ConnectionWrongStateError:
+                print("Connection already closed")
 
 class QueueConsumer(QueueWrapper):
 
@@ -43,7 +39,7 @@ class QueueConsumer(QueueWrapper):
     def consume_from_queue(self, queue, callback):
         if self._connection is not None:
             if self._connection.is_open:
-                self.close_connection()
+                self._connection.close()
 
         self._configure_blocking_connection()
         channel = self._connection.channel()
