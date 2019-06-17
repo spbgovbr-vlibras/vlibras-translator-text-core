@@ -1,76 +1,76 @@
 import pika
+from retry import retry
 
 from utils import configreader
+
+import logging
+logging.basicConfig()
 
 class QueueWrapper:
 
     def __init__(self):
-        self.__rabbitcfg = configreader.load_configs("RabbitMQ")
-        self.__add_credentials()
-        self.__configure_blocking_connection()
-        self.__configure_channel()
+        self._rabbitcfg = configreader.load_configs("RabbitMQ")
+        self._connection = None
 
-    def __add_credentials(self):
-        self.__credentials = pika.PlainCredentials(
-            self.__rabbitcfg.get("Username"),
-            self.__rabbitcfg.get("Password"))
+    def _configure_blocking_connection(self):
+        credentials = pika.PlainCredentials(
+            username=self._rabbitcfg.get("Username", "guest"),
+            password=self._rabbitcfg.get("Password", "guest"))
 
-    def __configure_blocking_connection(self):
         connection_params = pika.ConnectionParameters(
-            host=self.__rabbitcfg.get("Host"),
-            port=self.__rabbitcfg.get("Port"),
-            credentials=self.__credentials,
+            host=self._rabbitcfg.get("Host", "localhost"),
+            port=self._rabbitcfg.get("Port", "5672"),
+            credentials=credentials,
             heartbeat=0)
 
-        self.__connection = pika.BlockingConnection(connection_params)
-
-    def __configure_channel(self):
-        self.__channel = None
-
-        MAX_ATTEMPTS = 3
-
-        for attempts in range(MAX_ATTEMPTS):
-            try:
-                self.__channel = self.__connection.channel()
-                break
-            except:
-                self.__reload_connection()
-                print("Channel setup failed: Attempt(" + str(attempts) + ")")
-
-    def __reload_connection(self):
-        try:
-            self.__connection.close(reply_text="Reloading Connection")
-        finally:
-            self.__configure_blocking_connection()
-
-    def send_to_queue(self, id, route, payload):
-        if self.__channel is not None:
-            try:
-                self.__channel.publish(
-                    exchange="",
-                    properties=pika.BasicProperties(correlation_id=id),
-                    routing_key=route,
-                    body=payload)
-
-            except (pika.exceptions.UnroutableError, pika.exceptions.NackError) as ex:
-                self.close_connection()
-                print("Broker error: " + str(ex))
-
-    def consume_from_queue(self, queue, callback):
-        if self.__channel is not None:
-            self.__channel.queue_declare(queue=queue, durable=True)
-            self.__channel.basic_qos(prefetch_count=1)
-            self.__channel.basic_consume(callback, queue=queue, no_ack=False)
-
-            try:
-                self.__channel.start_consuming()
-            except pika.exceptions.RecursionError as ex:
-                self.close_connection()
-                print("Channel RecursionError: " + str(ex))
+        print("Connecting to RabbitMQ")
+        self._connection = pika.BlockingConnection(connection_params)
 
     def close_connection(self):
         try:
-            self.__channel.stop_consuming()
-            self.__connection.close()
-        except:
+            self._connection.close()
+        except pika.exceptions.ConnectionWrongStateError:
             print("Connection already closed")
+        finally:
+            self._connection = None
+
+class QueueConsumer(QueueWrapper):
+
+    def __init__(self):
+        super().__init__()
+
+    @retry(pika.exceptions.AMQPConnectionError, delay=3, jitter=(1,3))
+    def consume_from_queue(self, queue, callback):
+        if self._connection is not None:
+            if self._connection.is_open:
+                self.close_connection()
+
+        self._configure_blocking_connection()
+        channel = self._connection.channel()
+
+        channel.queue_declare(queue)
+        channel.basic_consume(
+            queue, 
+            on_message_callback=callback, 
+            auto_ack=True)
+        channel.start_consuming()
+
+class QueuePublisher(QueueWrapper):
+
+    def __init__(self):
+        super().__init__()
+        self.__channel = None
+
+    @retry(pika.exceptions.AMQPConnectionError, tries=3, delay=1)
+    def publish_to_queue(self, route, payload, correlation_id):
+        if self._connection is None or self._connection.is_closed:
+            self._configure_blocking_connection()
+
+        if self.__channel is None or self.__channel.is_closed:
+            self.__channel = self._connection.channel()
+
+        self.__channel.basic_publish(
+            exchange="",
+            routing_key=route,
+            body=payload,
+            properties=pika.BasicProperties(correlation_id=correlation_id))
