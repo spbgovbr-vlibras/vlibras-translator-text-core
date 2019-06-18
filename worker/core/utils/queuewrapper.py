@@ -35,7 +35,7 @@ class QueueConsumer(QueueWrapper):
     def __init__(self):
         super().__init__()
 
-    @retry(pika.exceptions.AMQPConnectionError, delay=3, jitter=(1,3))
+    @retry(pika.exceptions.AMQPConnectionError, delay=1, max_delay=5, jitter=1)
     def consume_from_queue(self, queue, callback):
         if self._connection is not None:
             if self._connection.is_open:
