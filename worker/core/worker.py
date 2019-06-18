@@ -17,24 +17,28 @@ class Worker:
         try:
             payload = json.loads(body)
             print("[+] Translating... ", end='')
-            translation = PortGlosa.traduzir(payload.get("text", ""))
+            gloss = PortGlosa.traduzir(payload.get("text", ""))
             print("\033[92mdone\033[0m")
 
-            self.__publisher.publish_to_queue(
-                properties.reply_to,
-                json.dumps({ "translation": translation }),
-                properties.correlation_id)
+            self.__reply_message(
+                route=properties.reply_to,
+                message=json.dumps({ "translation": gloss }),
+                id=properties.correlation_id)
 
-            self.__publisher.publish_to_queue(
-                properties.reply_to,
-                json.dumps({ "translation": translation }),
-                properties.correlation_id)
+        except json.JSONDecodeError:
+            self.__reply_message(
+                route=properties.reply_to,
+                message=json.dumps({ "error": "Body is not a valid JSON" }),
+                id=properties.correlation_id)
 
-        except json.JSONDecodeError as error:
-            self.__publisher.publish_to_queue(
-                properties.reply_to,
-                json.dumps({ "error": str(error) }),
-                properties.correlation_id)
+        except Exception as ex:
+            print(str(ex))
+
+    def __reply_message(self, route, message, id):
+        if route is not None and id is not None:
+            return self.__publisher.publish_to_queue(route, message, id)
+        
+        print("received invalid params")
 
     def start(self, queue):
         self.__consumer.consume_from_queue(queue, self.__process_message)
