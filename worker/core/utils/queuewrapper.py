@@ -1,3 +1,4 @@
+import logging
 import pika
 from retry import retry
 
@@ -6,6 +7,7 @@ from utils import configreader
 class QueueWrapper:
 
     def __init__(self):
+        self._logger = logging.getLogger(__class__.__name__)
         self._rabbitcfg = configreader.load_configs("RabbitMQ")
         self._connection = None
 
@@ -20,15 +22,16 @@ class QueueWrapper:
             credentials=credentials,
             heartbeat=0)
 
-        print("Connecting to RabbitMQ")
+        self._logger.debug("Creating a new blocking connection.")
         self._connection = pika.BlockingConnection(connection_params)
 
     def close_connection(self):
+        self._logger.debug("Closing blocking connection.")
         if self._connection is not None:
             try:
                 self._connection.close()
             except pika.exceptions.ConnectionWrongStateError:
-                print("Connection already closed")
+                self._logger.debug("Blocking connection already closed.")
 
 class QueueConsumer(QueueWrapper):
 
@@ -39,16 +42,26 @@ class QueueConsumer(QueueWrapper):
     def consume_from_queue(self, queue, callback):
         if self._connection is not None:
             if self._connection.is_open:
-                self._connection.close()
+                try:
+                    self._logger.debug("Closing consumer connection.")
+                    self._connection.close()
+                except pika.exceptions.ConnectionWrongStateError:
+                    self._logger.debug("Consumer connection already closed.")
 
+        self._logger.debug("Opening a new consumer connection.")
         self._configure_blocking_connection()
+        self._logger.debug("Opening a new consumer channel.")
         channel = self._connection.channel()
 
+        self._logger.debug("Declaring queue '{}'.".format(queue))
         channel.queue_declare(queue)
+
         channel.basic_consume(
             queue, 
             on_message_callback=callback, 
             auto_ack=True)
+
+        self._logger.debug("Starting consuming from queue '{}'.".format(queue))
         channel.start_consuming()
 
 class QueuePublisher(QueueWrapper):
@@ -60,13 +73,20 @@ class QueuePublisher(QueueWrapper):
     @retry(pika.exceptions.AMQPConnectionError, tries=3, delay=1)
     def publish_to_queue(self, route, payload, correlation_id):
         if self._connection is None or self._connection.is_closed:
+            self._logger.debug("Opening a new publisher connection.")
             self._configure_blocking_connection()
 
         if self.__channel is None or self.__channel.is_closed:
+            self._logger.debug("Opening a new publisher channel.")
             self.__channel = self._connection.channel()
 
-        self.__channel.basic_publish(
+        self._logger.debug("Publishing message in the route '{}'.".format(route))
+        try:
+            self.__channel.basic_publish(
             exchange="",
             routing_key=route,
             body=payload,
             properties=pika.BasicProperties(correlation_id=correlation_id))
+
+        except AssertionError:
+            self._logger.error("Failed to publish message.")
