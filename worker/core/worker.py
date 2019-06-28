@@ -5,7 +5,7 @@ import logging.config
 import os
 import threading
 
-import PortGlosa
+from vlibras_translate import translation
 
 from utils import configreader
 from utils import healthserver
@@ -15,6 +15,7 @@ class Worker:
 
     def __init__(self):
         self.__logger = logging.getLogger(__class__.__name__)
+        self.__translator = translation.Translation()
         self.__consumer = queuewrapper.QueueConsumer()
         self.__publisher = queuewrapper.QueuePublisher()
 
@@ -22,7 +23,7 @@ class Worker:
         try:
             self.__logger.info("Processing a new translation request.")
             payload = json.loads(body)
-            gloss = PortGlosa.traduzir(payload.get("text", ""))
+            gloss = self.__translator.rule_translation(payload.get("text", ""))
 
             self.__reply_message(
                 route=properties.reply_to,
