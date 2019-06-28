@@ -3,10 +3,12 @@
 import json
 import logging.config
 import os
+import threading
 
 import PortGlosa
 
 from utils import configreader
+from utils import healthserver
 from utils import queuewrapper
 
 class Worker:
@@ -64,17 +66,23 @@ if __name__ == "__main__":
     if not workercfg:
         raise SystemExit(1)
 
+    worker = Worker()
+
     try:
-        worker = Worker()
+        health_check = threading.Thread(
+            target=healthserver.start_server,
+            daemon=True)
+        health_check.start()
+
         logger.info("Translation Worker Started.")
         worker.start(workercfg.get("TranslatorQueue"))
 
     except KeyboardInterrupt:
-        logger.info("Stopping Translation Worker.")
-        worker.stop()
-        raise SystemExit(0)
+        logger.info("KeyboardInterrupt: stopping Translation Worker.")
 
     except Exception:
         logger.exception("Failed to start Translation Worker.")
+
+    finally:
         worker.stop()
         raise SystemExit(0)
