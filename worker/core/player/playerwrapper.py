@@ -93,8 +93,14 @@ class PlayerWrapper:
             shutil.rmtree(os.path.dirname(frames_path), ignore_errors=True)
             return video_path
 
-    def run(self, input_file, correlation_tag):
-        frames = self.__start_frame_capture(input_file, correlation_tag)
+    def run(self, input_text, correlation_tag):
+        gloss_name = "{}.{}".format(correlation_tag, "txt")
+        gloss_path = os.path.join(self.__temp_dir, correlation_tag, gloss_name)
+
+        with open(gloss_path, "w") as gfile:
+            gfile.write("{}#0".format(input_text))
+
+        frames = self.__start_frame_capture(gloss_path, correlation_tag)
         if not frames:
             return None
 

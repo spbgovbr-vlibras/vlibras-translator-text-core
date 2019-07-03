@@ -5,6 +5,7 @@ import logging.config
 import os
 import threading
 
+from player import playerwrapper
 from utils import configreader
 from utils import healthserver
 from utils import queuewrapper
@@ -14,16 +15,21 @@ class Worker:
     def __init__(self):
         self.__logger = logging.getLogger(__class__.__name__)
         self.__consumer = queuewrapper.QueueConsumer()
+        self.__videomaker = playerwrapper.PlayerWrapper()
 
     def __process_message(self, channel, method, properties, body):
         try:
-            self.__logger.info("Processing a new translation request.")
+            self.__logger.info("Processing a new video generation request.")
             payload = json.loads(body)
-            # Call PlayerWrapper here
+
+            video = self.__videomaker.run(
+                payload.get("text", ""), 
+                properties.correlation_id)
+
             # Update DB here
 
         except json.JSONDecodeError:
-            self.__logger.exception("Received an invalid translation request.")
+            self.__logger.exception("Received an invalid video generation request.")
             # Update DB here
 
         except Exception:
@@ -54,14 +60,14 @@ if __name__ == "__main__":
             daemon=True)
         health_check.start()
 
-        logger.info("Translation Worker Started.")
-        worker.start(workercfg.get("TranslatorQueue"))
+        logger.info("VideoMaker Worker Started.")
+        worker.start(workercfg.get("VideomakerQueue"))
 
     except KeyboardInterrupt:
-        logger.info("KeyboardInterrupt: stopping Translation Worker.")
+        logger.info("KeyboardInterrupt: stopping VideoMaker Worker.")
 
     except Exception:
-        logger.exception("Failed to start Translation Worker.")
+        logger.exception("Failed to start VideoMaker Worker.")
 
     finally:
         worker.stop()
