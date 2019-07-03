@@ -1,0 +1,47 @@
+apiVersion: extensions/v1beta1
+#kubectl expose deployment translatorapi --port=80 --type=LoadBalancer
+kind: Deployment
+metadata:
+  name: translatorcore
+  labels:
+    app: translatorcore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: translatorcore
+  template:
+    metadata:
+      labels:
+        app: translatorcore
+    spec:
+      containers:
+        - image: vlibras/translator-core:1.0.5
+          name: translatorcore
+          env:
+            - name: AMQP_HOST
+              value: "10.0.146.134"
+          stdin: true
+          tty: true
+          ports:
+            - containerPort: 8000
+              name: vlibras
+          #resources:
+          #  requests:
+          #    cpu: 600m
+          #    memory: 1.5Gi
+          livenessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - ps -ef | grep python | grep -v "grep"
+            initialDelaySeconds: 60
+            periodSeconds: 60
+          #livenessProbe:
+          #  tcpSocket:
+          #    port: 8000
+          #  initialDelaySeconds: 60
+          #  periodSeconds: 30
+      hostNetwork: true
+
