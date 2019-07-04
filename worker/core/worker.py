@@ -8,7 +8,6 @@ import threading
 from vlibras_translate import translation
 
 from utils import configreader
-from utils import healthserver
 from utils import queuewrapper
 
 class Worker:
@@ -67,14 +66,8 @@ if __name__ == "__main__":
     if not workercfg:
         raise SystemExit(1)
 
-    worker = Worker()
-
     try:
-        health_check = threading.Thread(
-            target=healthserver.start_server,
-            daemon=True)
-        health_check.start()
-
+        worker = Worker()
         logger.info("Translation Worker Started.")
         worker.start(workercfg.get("TranslatorQueue"))
 
