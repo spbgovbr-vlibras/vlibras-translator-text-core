@@ -5,6 +5,8 @@ import logging.config
 import os
 import threading
 
+from db import attributes
+from db import videodb
 from player import playerwrapper
 from utils import configreader
 from utils import healthserver
@@ -14,6 +16,7 @@ class Worker:
 
     def __init__(self):
         self.__logger = logging.getLogger(__class__.__name__)
+        self.__database = videodb.VideoDB()
         self.__consumer = queuewrapper.QueueConsumer()
         self.__videomaker = playerwrapper.PlayerWrapper()
 
@@ -22,20 +25,37 @@ class Worker:
             self.__logger.info("Processing a new video generation request.")
             payload = json.loads(body)
 
-            video = self.__videomaker.run(
-                payload.get("text", ""), 
-                properties.correlation_id)
+            self.__database.update_video_document(
+                video_uid=properties.correlation_id,
+                video_status=attributes.VideoStatus.PROCESSING.name)
 
-            # Update DB here
+            path, size, duration = self.__videomaker.run(
+                payload.get("gloss", ""),
+                properties.correlation_id,
+                payload.get("options", {}))
+
+            self.__database.update_video_document(
+                video_uid=properties.correlation_id,
+                video_status=attributes.VideoStatus.GENERATED.name,
+                video_path=path,
+                video_size=size,
+                video_duration=duration)
 
         except json.JSONDecodeError:
             self.__logger.exception("Received an invalid video generation request.")
-            # Update DB here
+            self.__database.update_video_document(
+                video_uid=properties.correlation_id,
+                video_status=attributes.VideoStatus.FAILED.name)
 
         except Exception:
             self.__logger.exception("An unexpected exception occurred.")
+            self.__database.update_video_document(
+                video_uid=properties.correlation_id,
+                video_status=attributes.VideoStatus.FAILED.name)
 
     def start(self, queue):
+        self.__logger.debug("Connecting to database.")
+        self.__database.connect()
         self.__logger.debug("Starting queue consumer.")
         self.__consumer.consume_from_queue(queue, self.__process_message)
 
@@ -60,7 +80,7 @@ if __name__ == "__main__":
             daemon=True)
         health_check.start()
 
-        logger.info("VideoMaker Worker Started.")
+        logger.info("Starting VideoMaker Worker.")
         worker.start(workercfg.get("VideomakerQueue"))
 
     except KeyboardInterrupt:
