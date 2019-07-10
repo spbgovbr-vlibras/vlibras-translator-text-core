@@ -1,3 +1,4 @@
 pika==1.0.1
+pymongo==3.8.0
 pyvirtualdisplay==0.2.4
 retry==0.9.2
