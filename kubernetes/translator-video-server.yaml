@@ -16,22 +16,26 @@ spec:
         app: translatorvideo
     spec:
       containers:
-        - image: vlibras/translator-video:04
+        - image: vlibras/translator-video:1.0.6
           name: translatorvideo
           env:
             - name: AMQP_HOST
-              value: "10.11.247.75"
+              value: "10.0.146.134"
             - name: AMQP_PORT
               value: "5672"
+            - name: PORT
+              value: "80"
             - name: DB_HOST
               value: "10.0.27.166"
             - name: DB_PORT
               value: "27017"
             - name: VLIBRAS_FILES
-              value: "/tmp/vlibras-files" 
+              value: "/video/" 
+          stdin: true
+          tty: true
           ports:
             - containerPort: 80
-              name: vlibras-translator-video-port
+              name: worker-video-pt
           resources:
             requests:
               cpu: 600m
@@ -42,4 +46,11 @@ spec:
           #    port: 80
           #  initialDelaySeconds: 30
           #  periodSeconds: 30
+          volumeMounts:
+            - name: video-nfs
+              mountPath: /video/
+      volumes:
+        - name: video-nfs
+          persistentVolumeClaim:
+            claimName: nfs
       hostNetwork: true
