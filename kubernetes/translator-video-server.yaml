@@ -27,6 +27,8 @@ spec:
               value: "10.0.27.166"
             - name: DB_PORT
               value: "27017"
+            - name: VLIBRAS_FILES
+              value: "/tmp/vlibras-files" 
           ports:
             - containerPort: 80
               name: vlibras-translator-video-port
