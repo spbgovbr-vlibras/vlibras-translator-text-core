@@ -1,29 +1,35 @@
 apiVersion: extensions/v1beta1
-#kubectl expose deployment translatorapi --port=80 --type=LoadBalancer
+#kubectl expose deployment translatorvideo --port=80 --type=LoadBalancer
 kind: Deployment
 metadata:
-  name: translatorcore
+  name: translatorvideo
   labels:
-    app: translatorcore
+    app: translatorvideo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: translatorcore
+      app: translatorvideo
   template:
     metadata:
       labels:
-        app: translatorcore
+        app: translatorvideo
     spec:
       containers:
-        - image: vlibras/translator-core:04
-          name: translatorcore
+        - image: vlibras/translator-video:04
+          name: translatorvideo
           env:
             - name: AMQP_HOST
               value: "10.11.247.75"
+            - name: AMQP_PORT
+              value: "5672"
+            - name: DB_HOST
+              value: "10.0.27.166"
+            - name: DB_PORT
+              value: "27017"
           ports:
             - containerPort: 80
-              name: vlibras
+              name: vlibras-translator-video-port
           resources:
             requests:
               cpu: 600m
@@ -35,4 +41,3 @@ spec:
           #  initialDelaySeconds: 30
           #  periodSeconds: 30
       hostNetwork: true
-
