@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LINUX_PACKAGES="build-essential python3-pip libhunspell-dev openjdk-8-jdk"
+LINUX_PACKAGES="build-essential python3-pip ffmpeg xvfb xserver-xephyr vnc4server"
 
 function install_system_dependencies {
   echo "Installing required system dependencies..."
