@@ -35,7 +35,7 @@ spec:
           tty: true
           ports:
             - containerPort: 80
-              name: worker-video-pt
+              name: vlibras-translator-video-port
           resources:
             requests:
               cpu: 600m
