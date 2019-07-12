@@ -37,10 +37,6 @@ spec:
         - containerPort: 15672
           name: rabbit
           protocol: TCP
-        resources:
-          requests:
-            cpu: 600m
-            memory: 1536Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
