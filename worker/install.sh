@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LINUX_PACKAGES="build-essential python3-pip ffmpeg xvfb xserver-xephyr vnc4server"
+LINUX_PACKAGES="build-essential python3.6-pip ffmpeg xvfb xserver-xephyr vnc4server"
 
 function install_system_dependencies {
   echo "Installing required system dependencies..."
@@ -10,7 +10,7 @@ function install_system_dependencies {
 
 function install_python_packages {
   echo -e "\nInstalling required python packages..."
-  (python3 -m pip install -r requirements.txt) || return 1
+  (python3.6 -m pip install -r requirements.txt) || return 1
   return 0
 }
 
