@@ -16,7 +16,7 @@ spec:
         app: translatorcore
     spec:
       containers:
-        - image: vlibras/translator-text:1.0.1
+        - image: vlibras/translator-text:1.0.2
           name: translatorcore
           env:
             - name: AMQP_HOST

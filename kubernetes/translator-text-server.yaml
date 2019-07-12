@@ -16,20 +16,16 @@ spec:
         app: translatortext
     spec:
       containers:
-        - image: vlibras/translator-text:1.0.1
+        - image: vlibras/translator-text:1.0.2
           name: translatortext
           env:
             - name: AMQP_HOST
-              value: "10.0.146.134"
+              value: "RABBITMQ-IP"
           stdin: true
           tty: true
           ports:
             - containerPort: 8000
               name: v-transl-txt
-          #resources:
-          #  requests:
-          #    cpu: 600m
-          #    memory: 1.5Gi
           livenessProbe:
             exec:
               command:
@@ -38,9 +34,4 @@ spec:
               - ps -ef | grep python | grep -v "grep"
             initialDelaySeconds: 60
             periodSeconds: 60
-          #livenessProbe:
-          #  tcpSocket:
-          #    port: 8000
-          #  initialDelaySeconds: 60
-          #  periodSeconds: 30
       hostNetwork: true
