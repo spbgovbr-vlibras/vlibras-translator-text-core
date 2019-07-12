@@ -38,14 +38,21 @@ class Worker:
 
         except Exception:
             self.__logger.exception("An unexpected exception occurred.")
+            self.__reply_message(
+                route=properties.reply_to,
+                message=json.dumps({ "error": "Translator internal error." }),
+                id=properties.correlation_id)
 
     def __reply_message(self, route, message, id):
         self.__logger.info("Sending response to request.")
 
         if id is None:
-            self.__logger.warning("The request don't have correlation_id.")
+            self.__logger.error("The request don't have correlation_id.")
 
-        self.__publisher.publish_to_queue(route, message, id)
+        if route is None:
+            self.__logger.error("The request don't have reply_to route.")
+        else:
+            self.__publisher.publish_to_queue(route, message, id)
 
     def start(self, queue):
         self.__logger.debug("Starting queue consumer.")
