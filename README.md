@@ -7,11 +7,11 @@
   </a>
 </div>
 
-# VLibras Translator (Core)
+# VLibras Translator (Text Core)
 
 VLibras Translation Service Core.
 
-![Version](https://img.shields.io/badge/version-v2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-v2.1.0-blue.svg)
 ![License](https://img.shields.io/badge/license-LGPLv3-blue.svg)
 ![VLibras](https://img.shields.io/badge/vlibras%20suite-2019-green.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAUCAYAAAC9BQwsAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4wIHCiw3NwjjIgAAAQ9JREFUOMuNkjErhWEYhq/nOBmkDNLJaFGyyyYsZzIZKJwfcH6AhcFqtCvFDzD5CQaTFINSlJJBZHI6J5flU5/P937fube357m63+d+nqBEagNYA9pAExgABxHxktU3882hjqtd9d7/+lCPsvpDZNA+MAXsABNU6xHYQ912ON2qC2qQ/X+J4XQXEVe/jwawCzwNAZp/NCLiDVgHejXgKIkVdGpm/FKXU/BJDfytbpWBLfWzAjxVx1Kuxwno5k84Jex0IpyzdN46qfYSjq18bzMHzQHXudifgQtgBuhHxGvKbaPg0Klaan7GdqE2W39LOq8OCo6X6kgdeJ4IZKUKWq1Y+GHVjF3gveTIe8BiCvwBEZmRAXuH6mYAAAAASUVORK5CYII=)
 
@@ -21,7 +21,6 @@ VLibras Translation Service Core.
   - [System Requirements](#system-requirements)
   - [Prerequisites](#prerequisites)
   - [Installing](#installing)
-- **[Running the Tests](#running-the-tests)**
 - **[Deployment](#deployment)**
   - [Deploy Tools](#deploy-tools)
   - [Deploying](#deploying)
@@ -35,40 +34,24 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### System Requirements
 
-* OS: Ubuntu 18.04.2 LTS (Bionic Beaver)   
-* Processor: -  
-* Memory: -  
-* Storage: -
+* OS: Ubuntu 18.04.2 LTS (Bionic Beaver)
 
 ### Prerequisites
 
 Before starting the installation, you need to install some prerequisites:
 
-[Translator Lib]()
-> Waiting for intallation guide
-
-<br/>
-
 [RabbitMQ](https://www.rabbitmq.com/)
 
 ```sh
-wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
+wget -O - "https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey" | sudo apt-key add -
 ```
 
 ```sh
-sudo apt install apt-transport-https
+curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
 ```
 
 ```sh
-echo "deb https://dl.bintray.com/rabbitmq/debian bionic main" | sudo tee /etc/apt/sources.list.d/bintray.rabbitmq.list
-```
-
-```sh
-sudo apt update
-```
-
-```sh
-sudo apt install -y rabbitmq-server
+sudo apt install -y rabbitmq-server --fix-missing
 ```
 
 ### Installing
@@ -93,13 +76,11 @@ cd worker/
 make dev start
 ```
 
-## Running the Tests
+## Deployment
 
 > In writing process.
 
-## Deployment
-
-These instructions will get you a copy of the project up and running on a live System.
+<!-- These instructions will get you a copy of the project up and running on a live System.
 
 ### Deploy Tools
 
@@ -214,7 +195,7 @@ kubectl apply -f kubernetes/server.yaml
 
 ```sh
 kubectl expose deployment translatorcore --port=80 --type=LoadBalancer
-```
+``` -->
 
 ## Contributors
 
