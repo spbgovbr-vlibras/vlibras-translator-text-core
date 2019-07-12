@@ -2,22 +2,22 @@ apiVersion: extensions/v1beta1
 #kubectl expose deployment translatortext --port=80 --type=LoadBalancer
 kind: Deployment
 metadata:
-  name: translatortext
+  name: translatorcore
   labels:
-    app: translatortext
+    app: translatorcore
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: translatortext
+      app: translatorcore
   template:
     metadata:
       labels:
-        app: translatortext
+        app: translatorcore
     spec:
       containers:
         - image: vlibras/translator-text:1.0.1
-          name: translatortext
+          name: translatorcore
           env:
             - name: AMQP_HOST
               value: "10.0.146.134"
