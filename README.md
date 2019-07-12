@@ -66,7 +66,7 @@ cd worker/
 sudo make install
 ```
 
-To test the installation, simply start the translation Core with the following command:
+To test the installation, simply start the Translation Core with the following command:
 
 ```sh
 cd worker/

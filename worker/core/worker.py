@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     try:
         worker = Worker()
-        logger.info("Translation Worker Started.")
+        logger.info("Starting Translation Worker.")
         worker.start(workercfg.get("TranslatorQueue"))
 
     except KeyboardInterrupt:
