@@ -27,7 +27,7 @@ spec:
           tty: true
           ports:
             - containerPort: 8000
-              name: vlibras-translator-text-core
+              name: vlibras-translator-text-port
           #resources:
           #  requests:
           #    cpu: 600m
