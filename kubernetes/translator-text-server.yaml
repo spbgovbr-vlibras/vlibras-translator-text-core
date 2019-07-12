@@ -21,6 +21,8 @@ spec:
           env:
             - name: AMQP_HOST
               value: "10.0.146.134"
+            - name: AMQP_PORT
+              value: "5672"
           stdin: true
           tty: true
           ports:
