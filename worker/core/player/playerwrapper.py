@@ -35,6 +35,9 @@ class PlayerWrapper:
         animation_speed = (player_params.get("speed")
                            or self.__playercfg.get("AnimationSpeed", "60"))
 
+        subtitle_param = (player_params.get("subtitle")
+                          or self.__playercfg.get("Subtitle", "subtitle_on"))
+
         unity_cmd = [
             self.__playercfg.get("PlayerBin", "None"),
             correlation_tag,
@@ -44,7 +47,8 @@ class PlayerWrapper:
             display_height,
             animation_speed,
             self.__playercfg.get("VideoFramerate", "24"),
-            avatar_param]
+            avatar_param,
+            subtitle_param]
 
         xephyr = pyvirtualdisplay.Display(
             visible=False,

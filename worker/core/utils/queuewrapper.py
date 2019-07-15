@@ -56,12 +56,12 @@ class QueueConsumer(QueueWrapper):
         self._logger.debug("Declaring queue '{}'.".format(queue))
         channel.queue_declare(queue)
 
-        channel.basic_consume(
-            queue, 
-            on_message_callback=callback, 
-            auto_ack=True)
+        prefetch = self._rabbitcfg.get("PrefetchCount", "1")
+        self._logger.debug("Setting prefetch count to '{}'.".format(prefetch))
+        channel.basic_qos(prefetch_count=int(prefetch))
 
         self._logger.debug("Starting consuming from queue '{}'.".format(queue))
+        channel.basic_consume(queue, on_message_callback=callback)
         channel.start_consuming()
 
 class QueuePublisher(QueueWrapper):

@@ -52,6 +52,10 @@ class Worker:
                 video_uid=properties.correlation_id,
                 video_status=attributes.VideoStatus.FAILED.name)
 
+        finally:
+            if channel.is_open:
+                channel.basic_ack(delivery_tag=method.delivery_tag)
+
     def start(self, queue):
         self.__logger.debug("Connecting to database.")
         self.__database.connect()
