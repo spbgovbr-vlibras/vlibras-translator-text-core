@@ -43,6 +43,10 @@ class Worker:
                 message=json.dumps({ "error": "Translator internal error." }),
                 id=properties.correlation_id)
 
+        finally:
+            if channel.is_open:
+                channel.basic_ack(delivery_tag=method.delivery_tag)
+
     def __reply_message(self, route, message, id):
         self.__logger.info("Sending response to request.")
 
