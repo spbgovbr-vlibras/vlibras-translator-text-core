@@ -57,7 +57,6 @@ sudo apt update
 ```sh
 sudo apt install -y mongodb-org
 ```
-<br/>
 
 [RabbitMQ](https://www.rabbitmq.com/)
 
@@ -71,6 +70,20 @@ curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/sc
 
 ```sh
 sudo apt install -y rabbitmq-server --fix-missing
+```
+
+[VLibras Player](http://www.vlibras.gov.br)
+
+```sh
+wget -P core/player/ http://vlibras.gov.br/files/vlibras-video-player.tar.xz
+```
+
+```sh
+tar -xvf core/player/vlibras-video-player.tar.xz -C core/player/
+```
+
+```sh
+rm core/player/vlibras-video-player.tar.xz
 ```
 
 ### Installing
