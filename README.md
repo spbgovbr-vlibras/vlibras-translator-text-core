@@ -78,9 +78,7 @@ make dev start
 
 ## Deployment
 
-> In writing process.
-
-<!-- These instructions will get you a copy of the project up and running on a live System.
+These instructions will get you a copy of the project up and running on a live System.
 
 ### Deploy Tools
 
@@ -180,22 +178,22 @@ kubectl expose deployment rabbitmq --type=ClusterIP
 
 The commands above will start the RabbitMQ pods. You must configure a volume set to be used by it. By default it set to be used in a Google Cloud Platform (GCP).
 
-Then, open the server.yaml file and edit the environment variable below to match your settings.
+Then, open the translator-text-server-template.yaml file and edit the environment variable below to match your settings.
 
 ```sh
 - name: AMQP_HOST
-  value: "RabbitMQ-ClusterIP"
+  value: "RABBITMQ-IP"
 ```
 
 Finally, starting the server by running the commands:
 
 ```sh
-kubectl apply -f kubernetes/server.yaml
+kubectl apply -f kubernetes/translator-text-server-template.yaml
 ```
 
 ```sh
-kubectl expose deployment translatorcore --port=80 --type=LoadBalancer
-``` -->
+kubectl expose deployment translatortext --port=80 --type=LoadBalancer
+```
 
 ## Contributors
 
