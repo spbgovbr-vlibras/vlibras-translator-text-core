@@ -122,8 +122,6 @@ Install the latest version of Docker and containerd:
 sudo apt install -y docker-ce docker-ce-cli containerd.io
 ```
 
-<br/>
-
 [Kubernetes](https://kubernetes.io/)
 
 Update the apt package index:
