@@ -181,6 +181,8 @@ Then, open the translator-text-server-template.yaml file and edit the environmen
 ```sh
 - name: AMQP_HOST
   value: "RABBITMQ-IP"
+  - name: AMQP_PORT
+  value: "RABBITMQ-PORT"
 ```
 
 Finally, starting the server by running the commands:
