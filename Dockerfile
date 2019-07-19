@@ -1,8 +1,8 @@
 FROM python:3.6-stretch
 
-RUN apt-get -y update //
- && apt-get -y install --reinstall build-essential //
- && apt-get -y install --reinstall make
+RUN apt-get -y update \
+&& apt-get -y install --reinstall build-essential \
+&& apt-get -y install --reinstall make
 
 ADD worker translator-video-worker/
 

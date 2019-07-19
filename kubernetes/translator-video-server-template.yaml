@@ -1,0 +1,65 @@
+apiVersion: extensions/v1beta1
+#kubectl expose deployment translatorvideo --port=80 --type=LoadBalancer
+kind: Deployment
+metadata:
+  name: translatorvideo
+  labels:
+    app: translatorvideo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: translatorvideo
+  template:
+    metadata:
+      labels:
+        app: translatorvideo
+    spec:
+      containers:
+        - image: vlibras/translator-video:1.1.3
+          name: translatorvideo
+          env:
+            - name: AMQP_HOST
+              value: "RABBITMQ-IP"
+            - name: AMQP_PORT
+              value: "RABBITMQ-PORT"
+            - name: AMQP_PREFETCH_COUNT
+              value: "1"
+            - name: PORT
+              value: "80"
+            - name: DB_HOST
+              value: "MONGODB-IP"
+            - name: DB_PORT
+              value: "MONGODB-PORT"
+            - name: VLIBRAS_FILES
+              value: "/video/" 
+          stdin: true
+          tty: true
+          livenessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+#              - ps -ef | grep python3 | grep -v "grep"
+              - pgrep python3
+            initialDelaySeconds: 1
+            periodSeconds: 5
+            failureThreshold: 1
+          readinessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+#              - ps -ef | grep python3 | grep -v "grep"
+              - pgrep python3
+            initialDelaySeconds: 1
+            periodSeconds: 5
+            failureThreshold: 1
+          volumeMounts:
+            - name: video-nfs
+              mountPath: /video/
+      volumes:
+        - name: video-nfs
+          persistentVolumeClaim:
+            claimName: nfs
+      hostNetwork: true
