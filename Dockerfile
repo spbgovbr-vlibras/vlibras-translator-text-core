@@ -8,4 +8,4 @@ WORKDIR translator-text-worker/
 
 RUN make install
 
-ENTRYPOINT make start
+CMD make start 
