@@ -112,7 +112,6 @@ make dev start
 
 > In writing process.
 
-<!-- These instructions will get you a copy of the project up and running on a live System.
 
 ### Deploy Tools
 
@@ -198,25 +197,37 @@ sudo apt install -y kubectl
 
 ### Deploying
 
-> Note: if you already have RabbitMQ running on your cluster, skip to the server configuration.
+> Note: if you already have RabbitMQ and/or MongoDB running on your cluster, skip to the server configuration.
 
 Once kubectl is installed and set, run the following commands:
 
 ```sh
 kubectl apply -f kubernetes/rabbitmq.yaml
+kubectl apply -f kubernetes/mongo.yaml
 ```
 
 ```sh
 kubectl expose deployment rabbitmq --type=ClusterIP
+kubectl expose deployment mongo --type=ClusterIP
 ```
 
-The commands above will start the RabbitMQ pods. You must configure a volume set to be used by it. By default it set to be used in a Google Cloud Platform (GCP).
+The commands above will start the RabbitMQ and MongoDB pods. You must configure a volume set to be used by it. By default it set to be used in a Google Cloud Platform (GCP).
+
+Besides MongoDB and RabbitMQ, the Translator Video Core will also need a persitent volume. This volume has to be a "nfs" type or have acess to Read and Write to Many (RWX) pods. 
+Through tis PV all generated video will be loaded in Vlibras Translate API. Because of that, the same PVC has to be used simultaneously by Translator Video Core and Translator Api.
+To understand more about persistent volumes and their behavior, visit : https://kubernetes.io/docs/concepts/storage/volumes/
 
 Then, open the server.yaml file and edit the environment variable below to match your settings.
 
 ```sh
 - name: AMQP_HOST
-  value: "RabbitMQ-ClusterIP"
+  value: "RABBITMQ-IP"
+- name: AMQP_PORT
+  value: "RABBITMQ-PORT"
+- name: DB_HOST
+  value: "MONGODB-IP"
+- name: DB_PORT
+  value: "MONGODB-PORT"
 ```
 
 Finally, starting the server by running the commands:
@@ -227,7 +238,7 @@ kubectl apply -f kubernetes/server.yaml
 
 ```sh
 kubectl expose deployment translatorcore --port=80 --type=LoadBalancer
-``` -->
+```
 
 ## Contributors
 
