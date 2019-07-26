@@ -2,7 +2,7 @@
   <a href="http://www.vlibras.gov.br/">
     <img
       alt="VLibras"
-      src="http://www.vlibras.gov.br/assets/imgs/IcaroGrande.png"
+      src="https://vlibras.gov.br/assets/imgs/IcaroGrande.png"
     />
   </a>
 </div>

@@ -90,4 +90,4 @@ if __name__ == "__main__":
 
     finally:
         worker.stop()
-        raise SystemExit(0)
+        raise SystemExit(1)
