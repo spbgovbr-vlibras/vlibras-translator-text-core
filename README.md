@@ -2,7 +2,7 @@
   <a href="http://www.vlibras.gov.br/">
     <img
       alt="VLibras"
-      src="http://www.vlibras.gov.br/assets/imgs/IcaroGrande.png"
+      src="https://vlibras.gov.br/assets/imgs/IcaroGrande.png"
     />
   </a>
 </div>
@@ -57,6 +57,7 @@ sudo apt update
 ```sh
 sudo apt install -y mongodb-org
 ```
+<br/>
 
 [RabbitMQ](https://www.rabbitmq.com/)
 
@@ -71,6 +72,7 @@ curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/sc
 ```sh
 sudo apt install -y rabbitmq-server --fix-missing
 ```
+<br/>
 
 [VLibras Player](http://www.vlibras.gov.br)
 
@@ -110,7 +112,7 @@ make dev start
 
 ## Deployment
 
-> In writing process.
+These instructions will get you a copy of the project up and running on a live System.
 
 
 ### Deploy Tools
@@ -154,7 +156,6 @@ Install the latest version of Docker and containerd:
 ```sh
 sudo apt install -y docker-ce docker-ce-cli containerd.io
 ```
-
 <br/>
 
 [Kubernetes](https://kubernetes.io/)
