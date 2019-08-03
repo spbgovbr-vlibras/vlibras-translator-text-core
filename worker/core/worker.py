@@ -9,6 +9,7 @@ from vlibras_translate import translation
 
 from utils import configreader
 from utils import queuewrapper
+from interruptingcow import timeout
 
 class Worker:
 
@@ -22,7 +23,11 @@ class Worker:
         try:
             self.__logger.info("Processing a new translation request.")
             payload = json.loads(body)
-            gloss = self.__translator.rule_translation(payload.get("text", ""))
+
+            self.__logger.info("Text : " + payload.get("text", ""))
+            with timeout(60, exception=RuntimeError):
+                gloss = self.__translator.rule_translation(payload.get("text", ""))
+            self.__logger.info("Gloss : " + gloss)
 
             self.__reply_message(
                 route=properties.reply_to,
