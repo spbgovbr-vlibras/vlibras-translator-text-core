@@ -14,9 +14,16 @@ class Worker:
 
     def __init__(self):
         self.__logger = logging.getLogger(__class__.__name__)
-        self.__translator = translation.Translation()
+        self.__translator = self.__get_translator()
         self.__consumer = queuewrapper.QueueConsumer()
         self.__publisher = queuewrapper.QueuePublisher()
+
+    def __get_translator(self):
+        try:
+            self.__logger.debug("Instantiating vlibras_translate.")
+            return translation.Translation()
+        except vlibras_translate.exceptions.LemmaException as ex:
+            raise ex
 
     def __process_message(self, channel, method, properties, body):
         try:
@@ -35,6 +42,16 @@ class Worker:
                 route=properties.reply_to,
                 message=json.dumps({ "error": "Body is not a valid JSON" }),
                 id=properties.correlation_id)
+
+        except vlibras_translate.exceptions.LemmaException:
+            self.__logger.exception("vlibras_translate failed to translate text.")
+            self.__reply_message(
+                route=properties.reply_to,
+                message=json.dumps({ "error": "Failed to translate text." }),
+                id=properties.correlation_id)
+
+            del self.__translator
+            self.__translator = self.__get_translator()
 
         except Exception:
             self.__logger.exception("An unexpected exception occurred.")
@@ -78,6 +95,7 @@ if __name__ == "__main__":
         raise SystemExit(1)
 
     try:
+        logger.info("Creating Translation Worker.")
         worker = Worker()
         logger.info("Starting Translation Worker.")
         worker.start(workercfg.get("TranslatorQueue"))
@@ -86,7 +104,7 @@ if __name__ == "__main__":
         logger.info("KeyboardInterrupt: stopping Translation Worker.")
 
     except Exception:
-        logger.exception("Failed to start Translation Worker.")
+        logger.exception("Unexpected error has occured in Translation Worker.")
 
     finally:
         worker.stop()
