@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 
+import ffmpeg
 import pyvirtualdisplay
 
 from utils import configreader
@@ -11,10 +12,29 @@ from utils import configreader
 class PlayerWrapper:
 
     def __init__(self):
-        self.__logger = logging.getLogger(__class__.__name__)
+        self.__logger = logging.getLogger(self.__class__.__name__)
         self.__playercfg = configreader.load_configs("LibrasPlayer")
         self.__ffmpegcfg = configreader.load_configs("FFmpeg")
         self.__temp_dir = self.__playercfg.get("TempDir", "/tmp")
+
+    def __handle_input_data(
+        self,
+        iput_data: str,
+        correlation_tag: str
+    ) -> str:
+
+        gloss_name = "{}.{}".format(correlation_tag, "txt")
+        gloss_path = os.path.join(self.__temp_dir, correlation_tag, gloss_name)
+        os.makedirs(os.path.dirname(gloss_path), exist_ok=True)
+
+        self.__logger.debug("Writing input file.")
+        with open(gloss_path, "w") as gfile:
+            gfile.write("0#{}".format(iput_data))
+
+        self.__logger.debug("{} successfully created.".format(gloss_path))
+
+        return gloss_path
+
 
     def __start_frames_capture(
         self,
@@ -79,7 +99,7 @@ class PlayerWrapper:
 
     def __start_video_rendering(
         self,
-        frames_path: str, 
+        frames_path: str,
         correlation_tag: str
     ) -> str:
 
@@ -88,7 +108,7 @@ class PlayerWrapper:
 
         ffmpeg_cmd = [
             self.__ffmpegcfg.get("FFmpegBin", "None"),
-            "-y", 
+            "-y",
             "-loglevel", "quiet",
             "-start_number", "20",
             "-r", self.__ffmpegcfg.get("VideoFramerate", "24"),
@@ -116,7 +136,7 @@ class PlayerWrapper:
             return video_path
 
     def run(
-        self, 
+        self,
         input_text: str,
         correlation_tag: str,
         options: dict = {}
