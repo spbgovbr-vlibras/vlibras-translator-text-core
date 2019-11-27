@@ -4,7 +4,7 @@ from enum import Enum
 
 class VideoStatus(Enum):
     QUEUED = auto()
-    PROCESSING = auto()
+    GENERATING = auto()
     GENERATED = auto()
     FAILED = auto()
     EXPIRED = auto()
