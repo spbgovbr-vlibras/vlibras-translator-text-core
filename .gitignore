@@ -117,3 +117,6 @@ dmypy.json
 # VLibras Player Binary and Palyer Data
 VLibras-Video.x86_64
 VLibras-Video_Data/
+
+# VSCode settings
+.vscode/
