@@ -47,7 +47,10 @@ class Worker:
             exceptionhandler.handle_exception(ex)
             if videoRequest is not None:
                 videoRequest.status = VideoStatus.FAILED.name.lower()
-                videoRequest.save()
+                try:
+                    videoRequest.save()
+                except Exception as ex:
+                    exceptionhandler.handle_exception(ex)
 
         finally:
             if channel.is_open:
