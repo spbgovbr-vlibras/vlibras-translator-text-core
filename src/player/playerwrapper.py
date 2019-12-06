@@ -22,7 +22,6 @@ class PlayerWrapper:
     def __init__(self):
         self.__logger = logging.getLogger(self.__class__.__name__)
         self.__playercfg = configreader.load_configs("LibrasPlayer")
-        self.__ffmpegcfg = configreader.load_configs("FFmpeg")
         self.__temp_dir = self.__playercfg.get("TempDir", "/tmp")
 
     def __handle_input_data(
@@ -51,10 +50,20 @@ class PlayerWrapper:
     ) -> str:
 
         frames_dir = os.path.join(self.__temp_dir, correlation_tag, "frames")
-        frames_path = os.path.join(frames_dir, "img_*.jpg")
+        frames_path = os.path.join(frames_dir,
+                                   self.__playercfg.get("FamesGlob", "img_*.jpg"))
 
-        display_width = self.__playercfg.get("DisplayWidth", "1024")
-        display_height = self.__playercfg.get("DisplayHeight", "768")
+        display_width = self.__playercfg.get("DisplayWidth", "720")
+        display_height = self.__playercfg.get("DisplayHeight", "900")
+
+        avatar_param = (player_params.get("avatar")
+                        or self.__playercfg.get("Avatar", "icaro"))
+
+        animation_speed = (player_params.get("speed")
+                           or self.__playercfg.get("AnimationSpeed", "150"))
+
+        subtitle_param = (player_params.get("caption")
+                          or self.__playercfg.get("Caption", "off"))
 
         unity_cmd = [
             self.__playercfg.get("PlayerBin", "None"),
@@ -63,10 +72,10 @@ class PlayerWrapper:
             "--videopath", frames_dir,
             "--width", display_width,
             "--height", display_height,
-            "--speed", self.__playercfg.get("AnimationSpeed", "70"),
+            "--speed", animation_speed,
             "--framerate", self.__playercfg.get("VideoFramerate", "24"),
-            "--avatar", self.__playercfg.get("Avatar", "icaro"),
-            "--subtitle", self.__playercfg.get("Caption", "off"),
+            "--avatar", avatar_param,
+            "--subtitle", subtitle_param,
             "--bundlespath", self.__playercfg.get("BundlesPath", "./Bundles")]
 
         xephyr = pyvirtualdisplay.Display(
@@ -81,7 +90,8 @@ class PlayerWrapper:
                 os.makedirs(frames_dir)
 
             self.__logger.debug("Generating video frames.")
-            subprocess.check_call(unity_cmd, stdout=open(os.devnull, "w"))
+            subprocess.check_call(unity_cmd, stdout=open(os.devnull, "w"),
+                                  timeout=int(self.__playercfg.get("playerTimeout")))
 
             self.__logger.debug(
                 "{} successfully generated.".format(frames_path))
@@ -97,6 +107,10 @@ class PlayerWrapper:
             self.__logger.exception(
                 "'{0}' returned a non-zero exit code.".format(*unity_cmd))
 
+        except subprocess.TimeoutExpired:
+            self.__logger.exception("'{0}' timed out.".format(*unity_cmd))
+            shutil.rmtree(os.path.dirname(frames_path), ignore_errors=True)
+
         finally:
             xephyr.stop()
             return frames_path
@@ -109,12 +123,17 @@ class PlayerWrapper:
 
         video_name = "{}.{}".format(correlation_tag, "mp4")
         video_path = os.path.join(self.__temp_dir, correlation_tag, video_name)
+        video_fps = self.__playercfg.get("VideoFramerate", 24)
 
         try:
             self.__logger.debug("Rendering video.")
+            video_stream = ffmpeg.input(
+                frames_path, pattern_type="glob", framerate=video_fps)
+            ad_stream = ffmpeg.input(
+                self.__playercfg.get("AdvertisementVideo", "None"))
             (
                 ffmpeg
-                .input(frames_path, pattern_type="glob", framerate=24)
+                .concat(video_stream, ad_stream)
                 .output(video_path, pix_fmt="yuv420p")
                 .global_args("-y", "-loglevel", "error")
                 .run()

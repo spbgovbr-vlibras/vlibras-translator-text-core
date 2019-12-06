@@ -8,7 +8,7 @@ from database import connection
 from database.attributes import VideoStatus
 from database.models import Videos
 
-from unity import playerwrapper
+from player import playerwrapper
 from util import configreader
 from util import exceptionhandler
 from util import queuewrapper
@@ -35,7 +35,7 @@ class Worker:
             video_path, video_size, video_duration = self.__videomaker.run(
                 payload.get("gloss", ""),
                 properties.correlation_id,
-                payload.get("options", {}))
+                payload.get("playerOptions", {}))
 
             videoRequest.status = VideoStatus.GENERATED.name.lower()
             videoRequest.path = video_path
