@@ -4,6 +4,7 @@ from retry import retry
 
 from utils import configreader
 
+
 class QueueWrapper:
 
     def __init__(self):
@@ -32,6 +33,7 @@ class QueueWrapper:
                 self._connection.close()
             except pika.exceptions.ConnectionWrongStateError:
                 self._logger.debug("Blocking connection already closed.")
+
 
 class QueueConsumer(QueueWrapper):
 
@@ -64,6 +66,7 @@ class QueueConsumer(QueueWrapper):
         channel.basic_consume(queue, on_message_callback=callback)
         channel.start_consuming()
 
+
 class QueuePublisher(QueueWrapper):
 
     def __init__(self):
@@ -80,13 +83,14 @@ class QueuePublisher(QueueWrapper):
             self._logger.debug("Opening a new publisher channel.")
             self.__channel = self._connection.channel()
 
-        self._logger.debug("Publishing message in the route '{}'.".format(route))
+        self._logger.debug(
+            "Publishing message in the route '{}'.".format(route))
         try:
             self.__channel.basic_publish(
-            exchange="",
-            routing_key=route,
-            body=payload,
-            properties=pika.BasicProperties(correlation_id=correlation_id))
+                exchange="",
+                routing_key=route,
+                body=payload,
+                properties=pika.BasicProperties(correlation_id=correlation_id))
 
         except AssertionError:
             self._logger.error("Failed to publish message.")

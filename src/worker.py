@@ -10,6 +10,7 @@ from vlibras_translate import translation
 from utils import configreader
 from utils import queuewrapper
 
+
 class Worker:
 
     def __init__(self):
@@ -33,21 +34,22 @@ class Worker:
 
             self.__reply_message(
                 route=properties.reply_to,
-                message=json.dumps({ "translation": gloss }),
+                message=json.dumps({"translation": gloss}),
                 id=properties.correlation_id)
 
         except json.JSONDecodeError:
             self.__logger.exception("Received an invalid translation request.")
             self.__reply_message(
                 route=properties.reply_to,
-                message=json.dumps({ "error": "Body is not a valid JSON" }),
+                message=json.dumps({"error": "Body is not a valid JSON"}),
                 id=properties.correlation_id)
 
         except vlibras_translate.exceptions.LemmaException:
-            self.__logger.exception("vlibras_translate failed to translate text.")
+            self.__logger.exception(
+                "vlibras_translate failed to translate text.")
             self.__reply_message(
                 route=properties.reply_to,
-                message=json.dumps({ "error": "Failed to translate text." }),
+                message=json.dumps({"error": "Failed to translate text."}),
                 id=properties.correlation_id)
 
             del self.__translator
@@ -57,7 +59,7 @@ class Worker:
             self.__logger.exception("An unexpected exception occurred.")
             self.__reply_message(
                 route=properties.reply_to,
-                message=json.dumps({ "error": "Translator internal error." }),
+                message=json.dumps({"error": "Translator internal error."}),
                 id=properties.correlation_id)
 
         finally:
@@ -84,6 +86,7 @@ class Worker:
         self.__consumer.close_connection()
         self.__logger.debug("Stopping queue publisher.")
         self.__publisher.close_connection()
+
 
 if __name__ == "__main__":
     logging.config.fileConfig(os.environ.get("LOGGER_CONFIG_FILE", ""))
