@@ -23,3 +23,10 @@ README.md
 Dockerfile
 docker-compose*
 .dockerignore
+
+# Compressed player files
+src/player/*.tar
+src/player/*.tar.*
+
+# Kubernetes files
+kubernetes/

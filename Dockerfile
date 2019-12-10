@@ -6,23 +6,20 @@ WORKDIR /requirements
 COPY requirements.txt requirements.txt
 
 RUN pip install --no-cache-dir --install-option="--prefix=/requirements" -r requirements.txt
-RUN echo "pcm.!default {\n  type plug\n  slave.pcm \"null\"\n}" | tee /etc/asound.conf
 
 FROM python:3.6-slim-stretch
 
 RUN apt-get update \
   && apt-get install -y ffmpeg xvfb \
-  && apt-get autoclean
+  && apt-get autoclean \
+  && echo "pcm.!default {\n  type plug\n  slave.pcm \"null\"\n}" | tee /etc/asound.conf
 
 COPY --from=build /requirements /usr/local
-COPY --from=build /etc/asound.conf /etc
-COPY src/ dist
-COPY cleaner.sh dist/cleaner.sh
+COPY src/ daemons/ dist/
 
 WORKDIR /dist
 
 ENV CORE_CONFIG_FILE /dist/config/settings.ini
 ENV LOGGER_CONFIG_FILE /dist/config/logging.ini
 
-#CMD ["python", "worker.py"]
-CMD python worker.py & sh cleaner.sh
+CMD python worker.py & /bin/bash cleaner.sh
