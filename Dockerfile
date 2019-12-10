@@ -1,13 +1,26 @@
-FROM python:3.6-stretch
+FROM python:3.6-slim-stretch as build
 
-RUN apt-get -y update \
-&& apt-get -y install --reinstall build-essential \
-&& apt-get -y install --reinstall make
+RUN mkdir /requirements
+WORKDIR /requirements
 
-ADD worker translator-video-worker/
+COPY requirements.txt requirements.txt
 
-WORKDIR translator-video-worker/
+RUN pip install --no-cache-dir --install-option="--prefix=/requirements" -r requirements.txt
+RUN echo "pcm.!default {\n  type plug\n  slave.pcm \"null\"\n}" | tee /etc/asound.conf
 
-RUN make install
+FROM python:3.6-slim-stretch
 
-ENTRYPOINT make start || watch -n 120 "find /video/ -name "*.mp4" -mmin +730 -delete"
+RUN apt-get update \
+  && apt-get install -y ffmpeg xvfb \
+  && apt-get autoclean
+
+COPY --from=build /requirements /usr/local
+COPY --from=build /etc/asound.conf /etc
+COPY src/ dist
+
+WORKDIR /dist
+
+ENV CORE_CONFIG_FILE /dist/config/settings.ini
+ENV LOGGER_CONFIG_FILE /dist/config/logging-dev.ini
+
+CMD ["python", "worker.py"]

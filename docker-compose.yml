@@ -1,0 +1,48 @@
+version: '3'
+services:
+  vlibras-translator-video-core:
+    build: .
+    image: vlibras_translator_core/video:2.2.0
+    networks:
+      - mongo-net
+      - rabbitmq-net
+    environment:
+      DB_HOST: mongo
+      DB_PORT: 27017
+      DB_NAME: "vlibras-db"
+      AMQP_HOST: rabbitmq
+      AMQP_PORT: 5672
+      AMQP_USER: vlibras
+      AMQP_PASS: vlibras
+      AMQP_PREFETCH_COUNT: 1
+      VIDEOMAKER_QUEUE: "translate.to_video"
+      VIDEOMAKER_TMP_DIR: /tmp/vlibras-files
+      VIDEOMAKER_BUNDLES_DIR: /tmp/vlibras-files/bundles
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  mongo:
+    image: mongo
+    networks:
+      - mongo-net
+    volumes:
+      - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    networks:
+      - rabbitmq-net
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: vlibras
+      RABBITMQ_DEFAULT_PASS: vlibras
+
+networks:
+  mongo-net:
+  rabbitmq-net:
+
+volumes:
+  mongo-data:
+  rabbitmq-data:

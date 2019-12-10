@@ -1,0 +1,25 @@
+# Compiled code
+__pycache__
+*.pyc
+
+# Installer
+install.sh
+Makefile
+
+# VSCode settings
+.vscode/
+
+# Git files
+.gitignore
+.git
+
+# License file
+LICENSE
+
+# Project guide
+README.md
+
+# Dokcer files
+Dockerfile
+docker-compose*
+.dockerignore
