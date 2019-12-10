@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   vlibras-translator-video-core:
     build: .
@@ -17,7 +17,7 @@ services:
       AMQP_PREFETCH_COUNT: 1
       VIDEOMAKER_QUEUE: "translate.to_video"
       VIDEOMAKER_TMP_DIR: /tmp/vlibras-files
-      VIDEOMAKER_BUNDLES_DIR: /tmp/vlibras-files/bundles
+      VIDEOMAKER_BUNDLES_DIR: /tmp/vlibras-bundles
     depends_on:
       - mongo
       - rabbitmq

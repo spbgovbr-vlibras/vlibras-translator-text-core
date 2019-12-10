@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
-while true
-do
-echo "Starting cleaner finder"
-find /video/translator/* -name "*" -mmin +120 -delete
-echo "Sleeping cleaner finder"
-sleep 120000
-done
-
+if [[ ! -v "${VIDEOMAKER_TMP_DIR}" ]]; then
+  echo "VIDEOMAKER_TMP_DIR environment variable not set."
+  exit 1
+else
+  while true
+  do
+  echo "Starting garbage cleaner"
+  find $VIDEOMAKER_TMP_DIR/* -name "*" -mmin +120 -delete
+  echo "Garbage cleaner going into hibernation"
+  sleep 120000
+  done
+fi
