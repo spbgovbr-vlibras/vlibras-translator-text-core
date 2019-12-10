@@ -21,6 +21,6 @@ COPY src/ dist
 WORKDIR /dist
 
 ENV CORE_CONFIG_FILE /dist/config/settings.ini
-ENV LOGGER_CONFIG_FILE /dist/config/logging-dev.ini
+ENV LOGGER_CONFIG_FILE /dist/config/logging.ini
 
 CMD ["python", "worker.py"]
