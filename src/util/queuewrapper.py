@@ -2,13 +2,13 @@ import logging
 import pika
 from retry import retry
 
-from utils import configreader
+from util import configreader
 
 
 class QueueWrapper:
 
     def __init__(self):
-        self._logger = logging.getLogger(__class__.__name__)
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._rabbitcfg = configreader.load_configs("RabbitMQ")
         self._connection = None
 
@@ -21,7 +21,7 @@ class QueueWrapper:
             host=self._rabbitcfg.get("Host", "localhost"),
             port=self._rabbitcfg.get("Port", "5672"),
             credentials=credentials,
-            heartbeat=0)
+            heartbeat=60)
 
         self._logger.debug("Creating a new blocking connection.")
         self._connection = pika.BlockingConnection(connection_params)
