@@ -1,41 +1,33 @@
-#!/usr/bin/python
-#from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
-from http.server import BaseHTTPRequestHandler,HTTPServer
-
-#This class will handles any incoming request from
-#the browser 
-response = "Hello World !".encode()
-class myHandler(BaseHTTPRequestHandler):
-	
-	#Handler for the GET requests
-	def do_GET(self):
-		self.send_response(200)
-		self.send_header('Content-type','text/html')
-		self.end_headers()
-		# Send the html message
-		self.wfile.write(response)
-		return
+import http.server
+import logging
+import threading
 
 
-class healthCheck():
+class HealthcheckHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
-	def __init__(self,port):
-		self.port = port
+    def __init__(self, *args, **kwargs):
+        self.__logger = logging.getLogger(self.__class__.__name__)
+        super().__init__(*args, **kwargs)
 
-	def start_HC(self):
-		try:
-			#Create a web server and define the handler to manage the
-			#incoming request
-			server = HTTPServer(('', self.port), myHandler)
-			print ('Started httpserver on port ' + str(self.port))
-			#Wait forever for incoming htto requests
-			server.serve_forever()
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write("OK".encode())
 
-		except KeyboardInterrupt:
-			server.socket.close()
-
+    def log_message(self, format, *args):
+        self.__logger.debug("Healthcheck from %s %s" %
+                            (self.address_string(), format % args))
 
 
-if __name__ == '__main__':
-	hc = healthCheck(8888)
-	hc.start_HC()
+def _create_healthcheck_Server(port):
+    logger = logging.getLogger(__name__)
+    logger.debug("Starting healthcheck server on port {}.".format(port))
+    server = http.server.HTTPServer(('', port), HealthcheckHTTPRequestHandler)
+    server.serve_forever()
+
+
+def run_healthcheck_thread(port):
+    hc_thread = threading.Thread(
+        target=_create_healthcheck_Server, args=(port,), daemon=True)
+    hc_thread.start()

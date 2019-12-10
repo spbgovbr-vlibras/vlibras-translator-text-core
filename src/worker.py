@@ -11,13 +11,8 @@ from database.models import Videos
 from player import playerwrapper
 from util import configreader
 from util import exceptionhandler
-from util import queuewrapper
 from util import healthcheck
-from threading import Thread
-
-def starting_HC_thread(port):
-    hc = healthcheck.healthCheck(port)
-    hc.start_HC()
+from util import queuewrapper
 
 
 class Worker:
@@ -76,14 +71,13 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
 
     workercfg = configreader.load_configs("Worker")
-    thread = Thread(target = starting_HC_thread, args = (80,))
-    thread.start()
 
     if not workercfg:
         raise SystemExit(1)
 
     try:
         connection.connect_to_database()
+        healthcheck.run_healthcheck_thread(workercfg.get("HealthServerPort"))
         logger.info("Creating VideoMaker Worker.")
         worker = Worker()
         logger.info("Starting VideoMaker Worker.")
