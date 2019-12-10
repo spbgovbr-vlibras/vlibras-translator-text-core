@@ -21,7 +21,7 @@ class QueueWrapper:
             host=self._rabbitcfg.get("Host", "localhost"),
             port=self._rabbitcfg.get("Port", "5672"),
             credentials=credentials,
-            heartbeat=0)
+            heartbeat=60)
 
         self._logger.debug("Creating a new blocking connection.")
         self._connection = pika.BlockingConnection(connection_params)

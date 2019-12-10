@@ -17,10 +17,12 @@ RUN apt-get update \
 COPY --from=build /requirements /usr/local
 COPY --from=build /etc/asound.conf /etc
 COPY src/ dist
+COPY cleaner.sh dist/cleaner.sh
 
 WORKDIR /dist
 
 ENV CORE_CONFIG_FILE /dist/config/settings.ini
 ENV LOGGER_CONFIG_FILE /dist/config/logging.ini
 
-CMD ["python", "worker.py"]
+#CMD ["python", "worker.py"]
+CMD python worker.py & sh cleaner.sh
