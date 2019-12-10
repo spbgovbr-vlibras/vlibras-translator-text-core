@@ -12,6 +12,12 @@ from player import playerwrapper
 from util import configreader
 from util import exceptionhandler
 from util import queuewrapper
+from util import healthcheck
+from threading import Thread
+
+def starting_HC_thread(port):
+    hc = healthcheck.healthCheck(port)
+    hc.start_HC()
 
 
 class Worker:
@@ -70,6 +76,8 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
 
     workercfg = configreader.load_configs("Worker")
+    thread = Thread(target = starting_HC_thread, args = (80,))
+    thread.start()
 
     if not workercfg:
         raise SystemExit(1)
