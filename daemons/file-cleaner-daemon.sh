@@ -6,9 +6,9 @@ if [[ ! -v "${VIDEOMAKER_TMP_DIR}" ]]; then
 else
   while true
   do
-  echo "Starting garbage cleaner"
+  echo "Starting File Cleaner Daemon"
   find $VIDEOMAKER_TMP_DIR/* -name "*" -mmin +120 -delete
-  echo "Garbage cleaner going into hibernation"
+  echo "File Cleaner Daemon going into hibernation"
   sleep 120000
   done
 fi

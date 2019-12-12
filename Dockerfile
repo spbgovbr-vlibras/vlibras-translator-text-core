@@ -22,4 +22,4 @@ WORKDIR /dist
 ENV CORE_CONFIG_FILE /dist/config/settings.ini
 ENV LOGGER_CONFIG_FILE /dist/config/logging.ini
 
-CMD python worker.py & /bin/bash cleaner.sh
+CMD python worker.py & /bin/bash file-cleaner-daemon.sh
