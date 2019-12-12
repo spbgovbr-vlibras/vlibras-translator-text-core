@@ -8,6 +8,7 @@ from vlibras_translate import translation
 
 from util import configreader
 from util import exceptionhandler
+from util import healthcheck
 from util import queuewrapper
 
 
@@ -79,6 +80,7 @@ if __name__ == "__main__":
         raise SystemExit(1)
 
     try:
+        healthcheck.run_healthcheck_thread(workercfg.get("HealthServerPort"))
         logger.info("Creating Translation Worker.")
         worker = Worker(workercfg.get("DLTranslationMode", "false"))
         logger.info("Starting Translation Worker.")
