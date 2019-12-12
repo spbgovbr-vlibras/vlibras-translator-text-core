@@ -29,5 +29,5 @@ def _create_healthcheck_Server(port):
 
 def run_healthcheck_thread(port):
     hc_thread = threading.Thread(
-        target=_create_healthcheck_Server, args=(port,), daemon=True)
+        target=_create_healthcheck_Server, args=(int(port),), daemon=True)
     hc_thread.start()
