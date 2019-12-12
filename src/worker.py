@@ -1,22 +1,15 @@
 #!/usr/bin/env python3.6
 
-from util import queuewrapper
-from util import healthcheck
-from util import exceptionhandler
-from util import configreader
-from interruptingcow import timeout
-from utils import queuewrapper
-from utils import configreader
 import json
 import logging.config
 import os
 
 from vlibras_translate import translation
 
-<< << << < HEAD: worker/core/worker.py
-== == == =
-
->>>>>> > hotfix-2.2.1: src/worker.py
+from util import configreader
+from util import exceptionhandler
+from util import healthcheck
+from util import queuewrapper
 
 
 class Worker:
