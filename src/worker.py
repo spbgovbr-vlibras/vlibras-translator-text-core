@@ -1,22 +1,23 @@
 #!/usr/bin/env python3.6
 
+from util import queuewrapper
+from util import healthcheck
+from util import exceptionhandler
+from util import configreader
+from interruptingcow import timeout
+from utils import queuewrapper
+from utils import configreader
 import json
 import logging.config
 import os
 
 from vlibras_translate import translation
 
-<<<<<<< HEAD:worker/core/worker.py
-from utils import configreader
-from utils import queuewrapper
-from interruptingcow import timeout
-=======
-from util import configreader
-from util import exceptionhandler
-from util import healthcheck
-from util import queuewrapper
+<< << << < HEAD: worker/core/worker.py
+== == == =
 
->>>>>>> hotfix-2.2.1:src/worker.py
+>>>>>> > hotfix-2.2.1: src/worker.py
+
 
 class Worker:
 
@@ -46,15 +47,7 @@ class Worker:
         try:
             self.__logger.info("Processing a new translation request.")
             payload = json.loads(body)
-<<<<<<< HEAD:worker/core/worker.py
-
-            self.__logger.info("Text : " + payload.get("text", ""))
-            with timeout(60, exception=RuntimeError):
-                gloss = self.__translator.rule_translation(payload.get("text", ""))
-            self.__logger.info("Gloss : " + gloss)
-=======
             gloss = self.__translate(payload.get("text", ""))
->>>>>>> hotfix-2.2.1:src/worker.py
 
             self.__reply_message(
                 route=properties.reply_to,
