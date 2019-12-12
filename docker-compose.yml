@@ -18,6 +18,7 @@ services:
       VIDEOMAKER_QUEUE: "translate.to_video"
       VIDEOMAKER_TMP_DIR: /tmp/vlibras-files
       VIDEOMAKER_BUNDLES_DIR: /tmp/vlibras-bundles
+      HEALTHCHECK_PORT: 80
     depends_on:
       - mongo
       - rabbitmq
