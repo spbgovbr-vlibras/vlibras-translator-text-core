@@ -1,4 +1,0 @@
-pika==1.0.1
-retry==0.9.2
-vlibras-translate==1.0.10
-interruptingcow==0.8

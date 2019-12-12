@@ -3,54 +3,33 @@
 import json
 import logging.config
 import os
-import threading
 
 from vlibras_translate import translation
 
+<<<<<<< HEAD:worker/core/worker.py
 from utils import configreader
 from utils import queuewrapper
 from interruptingcow import timeout
+=======
+from util import configreader
+from util import exceptionhandler
+from util import healthcheck
+from util import queuewrapper
+
+>>>>>>> hotfix-2.2.1:src/worker.py
 
 class Worker:
 
-    def __init__(self):
-        self.__logger = logging.getLogger(__class__.__name__)
-        self.__translator = translation.Translation()
+    def __init__(self, dlmode):
+        self.__logger = logging.getLogger(self.__class__.__name__)
+
+        if (dlmode == "true"):
+            self.__translate = translation.Translation().rule_translation_with_dl
+        else:
+            self.__translate = translation.Translation().rule_translation
+
         self.__consumer = queuewrapper.QueueConsumer()
         self.__publisher = queuewrapper.QueuePublisher()
-
-    def __process_message(self, channel, method, properties, body):
-        try:
-            self.__logger.info("Processing a new translation request.")
-            payload = json.loads(body)
-
-            self.__logger.info("Text : " + payload.get("text", ""))
-            with timeout(60, exception=RuntimeError):
-                gloss = self.__translator.rule_translation(payload.get("text", ""))
-            self.__logger.info("Gloss : " + gloss)
-
-            self.__reply_message(
-                route=properties.reply_to,
-                message=json.dumps({ "translation": gloss }),
-                id=properties.correlation_id)
-
-        except json.JSONDecodeError:
-            self.__logger.exception("Received an invalid translation request.")
-            self.__reply_message(
-                route=properties.reply_to,
-                message=json.dumps({ "error": "Body is not a valid JSON" }),
-                id=properties.correlation_id)
-
-        except Exception:
-            self.__logger.exception("An unexpected exception occurred.")
-            self.__reply_message(
-                route=properties.reply_to,
-                message=json.dumps({ "error": "Translator internal error." }),
-                id=properties.correlation_id)
-
-        finally:
-            if channel.is_open:
-                channel.basic_ack(delivery_tag=method.delivery_tag)
 
     def __reply_message(self, route, message, id):
         self.__logger.info("Sending response to request.")
@@ -63,6 +42,37 @@ class Worker:
         else:
             self.__publisher.publish_to_queue(route, message, id)
 
+    def __process_message(self, channel, method, properties, body):
+        try:
+            self.__logger.info("Processing a new translation request.")
+            payload = json.loads(body)
+<<<<<<< HEAD:worker/core/worker.py
+
+            self.__logger.info("Text : " + payload.get("text", ""))
+            with timeout(60, exception=RuntimeError):
+                gloss = self.__translator.rule_translation(payload.get("text", ""))
+            self.__logger.info("Gloss : " + gloss)
+=======
+            gloss = self.__translate(payload.get("text", ""))
+>>>>>>> hotfix-2.2.1:src/worker.py
+
+            self.__reply_message(
+                route=properties.reply_to,
+                message=json.dumps({"translation": gloss}),
+                id=properties.correlation_id)
+
+        except Exception as ex:
+            exceptionhandler.handle_exception(ex)
+
+            self.__reply_message(
+                route=properties.reply_to,
+                message=json.dumps({"error": "Translator internal error."}),
+                id=properties.correlation_id)
+
+        finally:
+            if channel.is_open:
+                channel.basic_ack(delivery_tag=method.delivery_tag)
+
     def start(self, queue):
         self.__logger.debug("Starting queue consumer.")
         self.__consumer.consume_from_queue(queue, self.__process_message)
@@ -72,6 +82,7 @@ class Worker:
         self.__consumer.close_connection()
         self.__logger.debug("Stopping queue publisher.")
         self.__publisher.close_connection()
+
 
 if __name__ == "__main__":
     logging.config.fileConfig(os.environ.get("LOGGER_CONFIG_FILE", ""))
@@ -83,7 +94,9 @@ if __name__ == "__main__":
         raise SystemExit(1)
 
     try:
-        worker = Worker()
+        healthcheck.run_healthcheck_thread(workercfg.get("HealthServerPort"))
+        logger.info("Creating Translation Worker.")
+        worker = Worker(workercfg.get("DLTranslationMode", "false"))
         logger.info("Starting Translation Worker.")
         worker.start(workercfg.get("TranslatorQueue"))
 
@@ -91,7 +104,7 @@ if __name__ == "__main__":
         logger.info("KeyboardInterrupt: stopping Translation Worker.")
 
     except Exception:
-        logger.exception("Failed to start Translation Worker.")
+        logger.exception("Unexpected error has occured in Translation Worker.")
 
     finally:
         worker.stop()
