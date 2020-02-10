@@ -2,7 +2,7 @@ version: "3"
 services:
   vlibras-translator-video-core:
     build: .
-    image: vlibras_translator_core/video:2.2.0
+    image: vlibras_translator_core/video:2.3.0
     networks:
       - mongo-net
       - rabbitmq-net
