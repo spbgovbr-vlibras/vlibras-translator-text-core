@@ -22,7 +22,7 @@ VLibras Translation Service Core.
   - [Prerequisites](#prerequisites)
   - [Installing](#installing)
 - **[Deployment](#deployment)**
-  - [Deploy Tools](#deploy-tools)
+  - [Deployment Tools](#deployment-tools)
   - [Deploying](#deploying)
 - **[Contributors](#contributors)**
 - **[License](#license)**
@@ -34,24 +34,52 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### System Requirements
 
-* OS: Ubuntu 18.04.2 LTS (Bionic Beaver)
+* OS: Ubuntu 18.04.3 LTS (Bionic Beaver)
 
 ### Prerequisites
 
 Before starting the installation, you need to install some prerequisites:
 
-[RabbitMQ](https://www.rabbitmq.com/)
+##### [RabbitMQ](https://www.rabbitmq.com/)
+
+Update package indices.
 
 ```sh
-wget -O - "https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey" | sudo apt-key add -
+sudo apt update
+```
+
+Install prerequisites.
+
+```sh
+sudo apt install -y curl gnupg apt-transport-https
+```
+
+Install RabbitMQ signing key.
+
+```sh
+curl -fsSL https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc | sudo apt-key add -
+```
+
+Add Bintray repositories that provision latest RabbitMQ and Erlang 21.x releases.
+
+```sh
+echo "deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang-21.x" | tee /etc/apt/sources.list.d/bintray.rabbitmq.list
 ```
 
 ```sh
-curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
+echo "deb https://dl.bintray.com/rabbitmq/debian bionic main" | tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
 ```
 
+Update package indices.
+
 ```sh
-sudo apt install -y rabbitmq-server --fix-missing
+sudo apt update
+```
+
+Install rabbitmq-server and its dependencies.
+
+```sh
+sudo apt install rabbitmq-server -y --fix-missing
 ```
 
 ### Installing
@@ -59,18 +87,10 @@ sudo apt install -y rabbitmq-server --fix-missing
 After installing all the prerequisites, install the project by running the command:
 
 ```sh
-cd worker/
-```
-
-```sh
 sudo make install
 ```
 
 To test the installation, simply start the Translation Core with the following command:
-
-```sh
-cd worker/
-```
 
 ```sh
 make dev start
@@ -80,119 +100,56 @@ make dev start
 
 These instructions will get you a copy of the project up and running on a live System.
 
-### Deploy Tools
+### Deployment Tools
 
-To fully deployment of this project its necessary to have installed and configured the Docker Engine and Kubernetes Container Orchestration.
+To fully deployment of this project its necessary to have installed and configured the Docker Engine and Docker Compose.
 
-[Docker](https://www.docker.com/)
+##### [Docker](https://www.docker.com/)
 
-Update the apt package index:
+Download get-docker script.
 
 ```sh
-sudo apt update
+curl -fsSL https://get.docker.com -o get-docker.sh
 ```
 
-Install packages to allow apt to use a repository over HTTPS:
+Install the latest version of Docker.
 
 ```sh
-sudo apt install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+sudo sh get-docker.sh
 ```
 
-Add Docker’s official GPG key:
+##### [Docker Compose](https://docs.docker.com/compose/)
+
+Download the current stable release of Docker Compose.
 
 ```sh
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 ```
 
-Use the following command to set up the stable repository:
+Apply executable permissions to the binary.
 
 ```sh
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-```
-
-Update the apt package index:
-
-```sh
-sudo apt update
-```
-
-Install the latest version of Docker and containerd:
-
-```sh
-sudo apt install -y docker-ce docker-ce-cli containerd.io
-```
-
-[Kubernetes](https://kubernetes.io/)
-
-Update the apt package index:
-
-```sh
-sudo apt update
-```
-
-Install packages to allow apt to use a repository over HTTPS:
-
-```sh
-sudo apt install -y apt-transport-https
-```
-
-Add Kubernetes’s official GPG key:
-
-```sh
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-```
-
-Use the following command to set up the main repository:
-
-```sh
-echo "deb https://apt.kubernetes.io/ kubernetes-bionic main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-```
-
-Update the apt package index:
-
-```sh
-sudo apt update
-```
-
-Install the kubectl:
-
-```sh
-sudo apt install -y kubectl
+sudo chmod +x /usr/local/bin/docker-compose
 ```
 
 ### Deploying
 
-> Note: if you already have RabbitMQ running on your cluster, skip to the server configuration.
+Before deploying the project, check the [docker-compose.yml](docker-compose.yml) file and review the following environment variables:
 
-Once kubectl is installed and set, run the following commands:
-
-```sh
-kubectl apply -f kubernetes/rabbitmq.yaml
+```yml
+AMQP_HOST: rabbitmq
+AMQP_PORT: 5672
+AMQP_USER: vlibras
+AMQP_PASS: vlibras
+AMQP_PREFETCH_COUNT: 1
+TRANSLATOR_QUEUE: "translate.to_text"
+ENABLE_DL_TRANSLATION: "false"
 ```
 
-```sh
-kubectl expose deployment rabbitmq --type=ClusterIP
-```
-
-The commands above will start the RabbitMQ pods. You must configure a volume set to be used by it. By default it set to be used in a Google Cloud Platform (GCP).
-
-Then, open the translator-text-server-template.yaml file and edit the environment variable below to match your settings.
+Finally, deploy the project by running:
 
 ```sh
-- name: AMQP_HOST
-  value: "RABBITMQ-IP"
-  - name: AMQP_PORT
-  value: "RABBITMQ-PORT"
-```
-
-Finally, starting the server by running the commands:
-
-```sh
-kubectl apply -f kubernetes/translator-text-server-template.yaml
-```
-
-```sh
-kubectl expose deployment translatortext --port=80 --type=LoadBalancer
+sudo docker-compose up
 ```
 
 ## Contributors
