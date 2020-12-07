@@ -15,3 +15,12 @@ class Videos(MongoModel):
 
     class Meta:
         final = True
+
+class StatusVideosTranslations(MongoModel):
+    translation = fields.ReferenceField(Videos)
+    status = fields.CharField(required=True)
+    createdAt = fields.DateTimeField()
+    updatedAt = fields.DateTimeField()
+
+    class Meta:
+        final = True
