@@ -41,8 +41,8 @@ class Worker:
             StatusVideosTranslations(
                 videoRequest,
                 VideoStatus.GENERATING.name.lower(),
-                datetime.datetime.now(),
-                datetime.datetime.now(),
+                datetime.datetime.utcnow(),
+                datetime.datetime.utcnow(),
             ).save()
 
             video_path, video_size, video_duration = self.__videomaker.run(
@@ -59,8 +59,8 @@ class Worker:
             StatusVideosTranslations(
                 videoRequest,
                 VideoStatus.GENERATED.name.lower(),
-                datetime.datetime.now(),
-                datetime.datetime.now(),
+                datetime.datetime.utcnow(),
+                datetime.datetime.utcnow(),
             ).save()
 
         except Exception as ex:
@@ -73,8 +73,8 @@ class Worker:
                     StatusVideosTranslations(
                         videoRequest,
                         VideoStatus.FAILED.name.lower(),
-                        datetime.datetime.now(),
-                        datetime.datetime.now(),
+                        datetime.datetime.utcnow(),
+                        datetime.datetime.utcnow(),
                     ).save()
 
                 except Exception as ex:
