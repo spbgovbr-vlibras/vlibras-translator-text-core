@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v "${VIDEOMAKER_TMP_DIR}" ]]; then
+if [[ -z "${VIDEOMAKER_TMP_DIR}" ]]; then
   echo "VIDEOMAKER_TMP_DIR environment variable not set."
   exit 1
 else
