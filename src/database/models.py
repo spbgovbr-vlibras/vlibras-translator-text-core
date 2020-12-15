@@ -17,7 +17,6 @@ class Videos(MongoModel):
         final = True
 
 class StatusVideosTranslations(MongoModel):
-    translation = fields.ReferenceField(Videos)
     status = fields.CharField(required=True)
     createdAt = fields.DateTimeField()
     updatedAt = fields.DateTimeField()

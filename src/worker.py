@@ -39,7 +39,6 @@ class Worker:
             videoRequest.save()
 
             StatusVideosTranslations(
-                videoRequest,
                 VideoStatus.GENERATING.name.lower(),
                 datetime.datetime.utcnow(),
                 datetime.datetime.utcnow(),
@@ -57,7 +56,6 @@ class Worker:
             videoRequest.save()
 
             StatusVideosTranslations(
-                videoRequest,
                 VideoStatus.GENERATED.name.lower(),
                 datetime.datetime.utcnow(),
                 datetime.datetime.utcnow(),
@@ -71,7 +69,6 @@ class Worker:
                     videoRequest.save()
 
                     StatusVideosTranslations(
-                        videoRequest,
                         VideoStatus.FAILED.name.lower(),
                         datetime.datetime.utcnow(),
                         datetime.datetime.utcnow(),
