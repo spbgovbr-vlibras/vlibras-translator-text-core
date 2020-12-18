@@ -18,6 +18,7 @@ class Videos(MongoModel):
 
 class StatusVideosTranslations(MongoModel):
     status = fields.CharField(required=True)
+    duration = fields.IntegerField()
     createdAt = fields.DateTimeField()
     updatedAt = fields.DateTimeField()
 
