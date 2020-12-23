@@ -3,10 +3,12 @@
 import json
 import logging.config
 import os
+import datetime
 
 from database import connection
 from database.attributes import VideoStatus
 from database.models import Videos
+from database.models import StatusVideosTranslations
 
 from player import playerwrapper
 from util import configreader
@@ -26,12 +28,22 @@ class Worker:
         try:
             self.__logger.info("Processing a new video generation request.")
             videoRequest = None
+            statusVideosTranslations = None
+
             payload = json.loads(body)
             videoRequest = Videos.objects.get(
                 {"uid": properties.correlation_id})
 
             videoRequest.status = VideoStatus.GENERATING.name.lower()
+
             videoRequest.save()
+
+            StatusVideosTranslations(
+                VideoStatus.GENERATING.name.lower(),
+                0,
+                datetime.datetime.utcnow(),
+                datetime.datetime.utcnow(),
+            ).save()
 
             video_path, video_size, video_duration = self.__videomaker.run(
                 payload.get("gloss", ""),
@@ -44,12 +56,27 @@ class Worker:
             videoRequest.duration = video_duration
             videoRequest.save()
 
+            StatusVideosTranslations(
+                VideoStatus.GENERATED.name.lower(),
+                video_duration,
+                datetime.datetime.utcnow(),
+                datetime.datetime.utcnow(),
+            ).save()
+
         except Exception as ex:
             exceptionhandler.handle_exception(ex)
             if videoRequest is not None:
                 videoRequest.status = VideoStatus.FAILED.name.lower()
                 try:
                     videoRequest.save()
+
+                    StatusVideosTranslations(
+                        VideoStatus.FAILED.name.lower(),
+                        0,
+                        datetime.datetime.utcnow(),
+                        datetime.datetime.utcnow(),
+                    ).save()
+
                 except Exception as ex:
                     exceptionhandler.handle_exception(ex)
 

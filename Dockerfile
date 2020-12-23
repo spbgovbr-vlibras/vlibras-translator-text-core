@@ -5,7 +5,8 @@ WORKDIR /requirements
 
 COPY requirements.txt requirements.txt
 
-RUN pip install --no-cache-dir --install-option="--prefix=/requirements" -r requirements.txt
+RUN pip install --no-cache-dir --prefix /requirements -r requirements.txt
+#RUN pip install --no-cache-dir --install-option="--prefix=/requirements" -r requirements.txt
 
 FROM python:3.6-slim-stretch
 
@@ -23,3 +24,4 @@ ENV CORE_CONFIG_FILE /dist/config/settings.ini
 ENV LOGGER_CONFIG_FILE /dist/config/logging.ini
 
 CMD python worker.py & /bin/bash file-cleaner-daemon.sh
+#CMD /bin/bash file-cleaner-daemon.sh

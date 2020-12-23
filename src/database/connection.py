@@ -9,7 +9,9 @@ def connect_to_database():
     logger = logging.getLogger(__name__)
 
     mongocfg = configreader.load_configs("MongoDB")
-    mongourl = "mongodb://{}:{}/{}".format(
+    mongourl = "mongodb://{}:{}@{}:{}/{}".format(
+        mongocfg.get("DBUser", "None"),
+        mongocfg.get("DBPass", "None"),
         mongocfg.get("DBHost", "None"),
         mongocfg.get("DBPort", "None"),
         mongocfg.get("DBName", "None"))
