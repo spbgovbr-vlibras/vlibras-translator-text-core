@@ -84,41 +84,32 @@ class QueueConsumer(QueueWrapper):
                     self._logger.debug("Consumer connection already closed.")
 
         self._logger.debug("Opening a new consumer channel.")
-        test = ConsumeSingleton.instance()
+        consumer = ConsumeSingleton.instance()
         self._logger.debug("Declaring queue '{}'.".format(queue))
 
-        test.channel.queue_declare(queue)
+        consumer.channel.queue_declare(queue)
 
         prefetch = self._rabbitcfg.get("PrefetchCount", "1")
         self._logger.debug("Setting prefetch count to '{}'.".format(prefetch))
-        test.channel.basic_qos(prefetch_count=int(prefetch))
+        consumer.channel.basic_qos(prefetch_count=int(prefetch))
 
         self._logger.debug("Starting consuming from queue '{}'.".format(queue))
-        test.channel.basic_consume(queue, on_message_callback=callback)
-        test.channel.start_consuming()
+        consumer.channel.basic_consume(queue, on_message_callback=callback)
+        consumer.channel.start_consuming()
 
 
 class QueuePublisher(QueueWrapper):
 
     def __init__(self):
         super().__init__()
-        self.__channel = None
-        self.test = PublisherSingleton.instance()
+        self.publisher = PublisherSingleton.instance()
 
     @retry(pika.exceptions.AMQPConnectionError, tries=3, delay=1)
     def publish_to_queue(self, route, payload, correlation_id):
-        if self._connection is None or self._connection.is_closed:
-            self._logger.debug("Opening a new publisher connection.")
-            self._configure_blocking_connection()
-
-        if self.__channel is None or self.__channel.is_closed:
-            self._logger.debug("Opening a new publisher channel.")
-            self.__channel = self._connection.channel()
-
         self._logger.debug(
             "Publishing message in the route '{}'.".format(route))
         try:
-            self.test.channel.basic_publish(
+            self.publisher.channel.basic_publish(
                 exchange="",
                 routing_key=route,
                 body=payload,
