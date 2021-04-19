@@ -109,6 +109,7 @@ class QueuePublisher(QueueWrapper):
         self._logger.debug(
             "Publishing message in the route '{}'.".format(route))
         try:
+            
             self.publisher.channel.basic_publish(
                 exchange="",
                 routing_key=route,
