@@ -29,7 +29,10 @@ class Worker:
         try:
             self.__logger.info("Processing a new translation request.")
             payload = json.loads(body)
-            gloss = self.__translator.rule_translation(payload.get("text", ""))
+
+            self.__logger.info("Text : " + payload.get("text", ""))
+            gloss = self.__translator.rule_translation_with_dl(payload.get("text", ""))
+            self.__logger.info("Gloss with DL : " + gloss)
 
             self.__reply_message(
                 route=properties.reply_to,

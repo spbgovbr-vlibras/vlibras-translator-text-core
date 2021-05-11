@@ -1,0 +1,50 @@
+apiVersion: extensions/v1beta1
+#kubectl expose deployment translatortext --port=80 --type=LoadBalancer
+kind: Deployment
+metadata:
+  name: translatorcore-text-teste
+  labels:
+    app: translatorcore-text-teste
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: translatorcore-text-teste
+  template:
+    metadata:
+      labels:
+        app: translatorcore-text-teste
+    spec:
+      containers:
+        - image: vlibras/translator-text:cogroo-stabilize03
+          name: translatorcore-text-teste
+          env:
+            - name: AMQP_USER
+              value: "user"
+            - name: AMQP_PASS
+              value: "50inY8oprT"
+            - name: AMQP_HOST
+              value: "10.0.61.193"
+            - name: AMQP_PORT
+              value: "5672"
+            - name: AMQP_PREFETCH_COUNT
+              value: "10"
+          stdin: true
+          tty: true
+          resources:
+            requests:
+              cpu: 1
+              memory: 2.5Gi
+#            limits:
+#              cpu: 300m
+#              memory: 512Mi
+          livenessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - timeout 20 python /translator-text-worker/core/utils/translatorhc.py
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            failureThreshold: 1
+#        hostNetwork: true

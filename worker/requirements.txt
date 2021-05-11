@@ -1,3 +1,4 @@
+Cython==0.29.13
 pika==1.0.1
 retry==0.9.2
-vlibras-translate
+interruptingcow==0.8
