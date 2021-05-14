@@ -90,7 +90,7 @@ class Worker:
 
     def stop(self):
         self.__logger.debug("Stopping queue consumer.")
-        self.__consumer.close_connection()
+        # self.__consumer.close_connection()
 
 
 if __name__ == "__main__":

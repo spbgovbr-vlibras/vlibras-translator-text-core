@@ -35,6 +35,39 @@ class QueueWrapper:
                 self._logger.debug("Blocking connection already closed.")
 
 
+class ConsumeSingleton(QueueWrapper):
+
+    _instance = None
+
+    def __init__(self):
+        super().__init__()
+        self._logger.debug("Opening a new consumer connection.")
+        self._configure_blocking_connection()
+        self.channel = self._connection.channel()
+
+    @classmethod
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+
+class PublisherSingleton(QueueWrapper):
+
+    _instance = None
+
+    def __init__(self):
+        super().__init__()
+        self._configure_blocking_connection()
+        self.channel = self._connection.channel()
+
+    @classmethod
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+
 class QueueConsumer(QueueWrapper):
 
     def __init__(self):
@@ -50,43 +83,34 @@ class QueueConsumer(QueueWrapper):
                 except pika.exceptions.ConnectionWrongStateError:
                     self._logger.debug("Consumer connection already closed.")
 
-        self._logger.debug("Opening a new consumer connection.")
-        self._configure_blocking_connection()
         self._logger.debug("Opening a new consumer channel.")
-        channel = self._connection.channel()
-
+        consumer = ConsumeSingleton.instance()
         self._logger.debug("Declaring queue '{}'.".format(queue))
-        channel.queue_declare(queue)
+
+        consumer.channel.queue_declare(queue)
 
         prefetch = self._rabbitcfg.get("PrefetchCount", "1")
         self._logger.debug("Setting prefetch count to '{}'.".format(prefetch))
-        channel.basic_qos(prefetch_count=int(prefetch))
+        consumer.channel.basic_qos(prefetch_count=int(prefetch))
 
         self._logger.debug("Starting consuming from queue '{}'.".format(queue))
-        channel.basic_consume(queue, on_message_callback=callback)
-        channel.start_consuming()
+        consumer.channel.basic_consume(queue, on_message_callback=callback)
+        consumer.channel.start_consuming()
 
 
 class QueuePublisher(QueueWrapper):
 
     def __init__(self):
         super().__init__()
-        self.__channel = None
+        self.publisher = PublisherSingleton.instance()
 
     @retry(pika.exceptions.AMQPConnectionError, tries=3, delay=1)
     def publish_to_queue(self, route, payload, correlation_id):
-        if self._connection is None or self._connection.is_closed:
-            self._logger.debug("Opening a new publisher connection.")
-            self._configure_blocking_connection()
-
-        if self.__channel is None or self.__channel.is_closed:
-            self._logger.debug("Opening a new publisher channel.")
-            self.__channel = self._connection.channel()
-
         self._logger.debug(
             "Publishing message in the route '{}'.".format(route))
         try:
-            self.__channel.basic_publish(
+
+            self.publisher.channel.basic_publish(
                 exchange="",
                 routing_key=route,
                 body=payload,
