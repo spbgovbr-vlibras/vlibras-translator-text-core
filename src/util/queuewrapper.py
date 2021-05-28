@@ -21,7 +21,7 @@ class QueueWrapper:
             host=self._rabbitcfg.get("Host", "localhost"),
             port=self._rabbitcfg.get("Port", "5672"),
             credentials=credentials,
-            heartbeat=60)
+            heartbeat=0)
 
         self._logger.debug("Creating a new blocking connection.")
         self._connection = pika.BlockingConnection(connection_params)
@@ -41,7 +41,7 @@ class ConsumeSingleton(QueueWrapper):
 
     def __init__(self):
         super().__init__()
-        self._logger.debug("Opening a new consumer connection.")
+        self._logger.debug("Opening a new consumer channel.")
         self._configure_blocking_connection()
         self.channel = self._connection.channel()
 
@@ -58,6 +58,7 @@ class PublisherSingleton(QueueWrapper):
 
     def __init__(self):
         super().__init__()
+        self._logger.debug("Opening a new publisher channel.")
         self._configure_blocking_connection()
         self.channel = self._connection.channel()
 
@@ -98,7 +99,7 @@ class QueueConsumer(QueueWrapper):
         consumer.channel.start_consuming()
 
 
-class QueuePublisher(QueueWrapper):
+class QueuePublisher(PublisherSingleton):
 
     def __init__(self):
         super().__init__()
@@ -109,7 +110,6 @@ class QueuePublisher(QueueWrapper):
         self._logger.debug(
             "Publishing message in the route '{}'.".format(route))
         try:
-            
             self.publisher.channel.basic_publish(
                 exchange="",
                 routing_key=route,
