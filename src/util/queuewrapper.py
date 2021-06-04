@@ -11,20 +11,19 @@ class QueueWrapper:
         self._logger = logging.getLogger(self.__class__.__name__)
         self._rabbitcfg = configreader.load_configs("RabbitMQ")
         self._connection = None
+        self._credentials = None
+        self._connection_params = None
 
     def _configure_blocking_connection(self):
-        credentials = pika.PlainCredentials(
+        self._credentials = pika.PlainCredentials(
             username=self._rabbitcfg.get("Username", "guest"),
             password=self._rabbitcfg.get("Password", "guest"))
 
-        connection_params = pika.ConnectionParameters(
+        self._connection_params = pika.ConnectionParameters(
             host=self._rabbitcfg.get("Host", "localhost"),
             port=self._rabbitcfg.get("Port", "5672"),
-            credentials=credentials,
-            heartbeat=0)
-
-        self._logger.debug("Creating a new blocking connection.")
-        self._connection = pika.BlockingConnection(connection_params)
+            credentials=self._credentials,
+            heartbeat=20)
 
     def close_connection(self):
         self._logger.debug("Closing blocking connection.")
@@ -42,12 +41,12 @@ class ConsumeSingleton(QueueWrapper):
     def __init__(self):
         super().__init__()
         self._logger.debug("Opening a new consumer channel.")
-        self._configure_blocking_connection()
+        self._connection = pika.BlockingConnection(self._connection_params)
         self.channel = self._connection.channel()
 
     @classmethod
     def instance(cls):
-        if cls._instance is None:
+        if cls._instance is None or cls._instance._connection.is_closed:
             cls._instance = cls()
         return cls._instance
 
@@ -59,12 +58,12 @@ class PublisherSingleton(QueueWrapper):
     def __init__(self):
         super().__init__()
         self._logger.debug("Opening a new publisher channel.")
-        self._configure_blocking_connection()
+        self._connection = pika.BlockingConnection(self._connection_params)
         self.channel = self._connection.channel()
 
     @classmethod
     def instance(cls):
-        if cls._instance is None:
+        if cls._instance is None or cls._instance._connection.is_closed:
             cls._instance = cls()
         return cls._instance
 
@@ -76,18 +75,10 @@ class QueueConsumer(QueueWrapper):
 
     @retry(pika.exceptions.AMQPConnectionError, delay=1, max_delay=5, jitter=1)
     def consume_from_queue(self, queue, callback):
-        if self._connection is not None:
-            if self._connection.is_open:
-                try:
-                    self._logger.debug("Closing consumer connection.")
-                    self._connection.close()
-                except pika.exceptions.ConnectionWrongStateError:
-                    self._logger.debug("Consumer connection already closed.")
 
         self._logger.debug("Opening a new consumer channel.")
         consumer = ConsumeSingleton.instance()
         self._logger.debug("Declaring queue '{}'.".format(queue))
-
         consumer.channel.queue_declare(queue)
 
         prefetch = self._rabbitcfg.get("PrefetchCount", "1")
@@ -99,18 +90,19 @@ class QueueConsumer(QueueWrapper):
         consumer.channel.start_consuming()
 
 
-class QueuePublisher(PublisherSingleton):
+class QueuePublisher(QueueWrapper):
 
     def __init__(self):
         super().__init__()
-        self.publisher = PublisherSingleton.instance()
 
     @retry(pika.exceptions.AMQPConnectionError, tries=3, delay=1)
     def publish_to_queue(self, route, payload, correlation_id):
+
+        publisher = PublisherSingleton.instance()
         self._logger.debug(
             "Publishing message in the route '{}'.".format(route))
         try:
-            self.publisher.channel.basic_publish(
+            publisher.channel.basic_publish(
                 exchange="",
                 routing_key=route,
                 body=payload,
