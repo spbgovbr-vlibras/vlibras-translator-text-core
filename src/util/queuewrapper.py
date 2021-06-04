@@ -13,8 +13,10 @@ class QueueWrapper:
         self._connection = None
         self._credentials = None
         self._connection_params = None
+        self._configure_blocking_connection()
 
     def _configure_blocking_connection(self):
+
         self._credentials = pika.PlainCredentials(
             username=self._rabbitcfg.get("Username", "guest"),
             password=self._rabbitcfg.get("Password", "guest"))
