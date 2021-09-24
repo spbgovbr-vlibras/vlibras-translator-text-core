@@ -5,11 +5,13 @@ import logging.config
 import os
 
 from vlibras_translate import translation
+from scheduletest import RabbitRefreshConnection
 
 from util import configreader
 from util import exceptionhandler
 from util import healthcheck
 from util import queuewrapper
+from util import rabbitconnectionrefresh
 
 
 class Worker:
@@ -22,8 +24,13 @@ class Worker:
         else:
             self.__translate = translation.Translation().rule_translation
 
-        self.__consumer = queuewrapper.QueueConsumer()
-        self.__publisher = queuewrapper.QueuePublisher()
+        self.consumer = queuewrapper.QueueConsumer()
+        self.publisher = queuewrapper.QueuePublisher()
+
+        self.rabbitconnectionrefresh = rabbitconnectionrefresh.RabbitRefreshConnection(self.consumer, self.publisher)
+        self.rabbitconnectionrefresh.start() 
+
+        
 
     def __reply_message(self, route, message, id):
         self.__logger.info("Sending response to request.")
@@ -34,7 +41,7 @@ class Worker:
         if route is None:
             self.__logger.error("The request don't have reply_to route.")
         else:
-            self.__publisher.publish_to_queue(route, message, id)
+            self.publisher.publish_to_queue(route, message, id)
 
     def __process_message(self, channel, method, properties, body):
         try:
@@ -61,13 +68,13 @@ class Worker:
 
     def start(self, queue):
         self.__logger.debug("Starting queue consumer.")
-        self.__consumer.consume_from_queue(queue, self.__process_message)
+        self.consumer.consume_from_queue(queue, self.__process_message)
 
     def stop(self):
         self.__logger.debug("Stopping queue consumer.")
-        self.__consumer.close_connection()
+        self.consumer.close_connection()
         self.__logger.debug("Stopping queue publisher.")
-        self.__publisher.close_connection()
+        self.publisher.close_connection()
 
 
 if __name__ == "__main__":
