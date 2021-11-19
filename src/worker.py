@@ -38,10 +38,10 @@ class Worker:
 
             videoRequest.save()
 
-            print('############# GENERATING #############')
-            print(VideoStatus.GENERATING.name.lower())
-            print(datetime.datetime.utcnow())
-            print(datetime.datetime.utcnow())
+            logger.info('############# GENERATING #############')
+            logger.info(VideoStatus.GENERATING.name.lower())
+            logger.info(datetime.datetime.utcnow())
+            logger.info(datetime.datetime.utcnow())
 
             StatusVideosTranslations(
                 VideoStatus.GENERATING.name.lower(),
@@ -49,7 +49,7 @@ class Worker:
                 datetime.datetime.utcnow(),
                 datetime.datetime.utcnow(),
             ).save()
-            print('############# SAIU GENERATING #############')
+            logger.info('############# SAIU GENERATING #############')
 
 
             video_path, video_size, video_duration = self.__videomaker.run(
@@ -63,10 +63,10 @@ class Worker:
             videoRequest.duration = video_duration
             videoRequest.save()
 
-            print('############# GENERATED #############')
-            print(VideoStatus.GENERATED.name.lower())
-            print(video_duration)
-            print(datetime.datetime.utcnow())
+            logger.info('############# GENERATED #############')
+            logger.info(VideoStatus.GENERATED.name.lower())
+            logger.info(video_duration)
+            logger.info(datetime.datetime.utcnow())
 
             StatusVideosTranslations(
                 VideoStatus.GENERATED.name.lower(),
@@ -74,7 +74,7 @@ class Worker:
                 datetime.datetime.utcnow(),
                 datetime.datetime.utcnow(),
             ).save()
-            print('############# SAIU GENERATED #############')
+            logger.info('############# SAIU GENERATED #############')
 
         except Exception as ex:
             exceptionhandler.handle_exception(ex)
@@ -83,9 +83,9 @@ class Worker:
                 try:
                     videoRequest.save()
 
-                    print('############# FAILED #############')
-                    print(VideoStatus.FAILED.name.lower())
-                    print(datetime.datetime.utcnow())
+                    logger.info('############# FAILED #############')
+                    logger.info(VideoStatus.FAILED.name.lower())
+                    logger.info(datetime.datetime.utcnow())
 
                     StatusVideosTranslations(
                         VideoStatus.FAILED.name.lower(),
@@ -93,7 +93,7 @@ class Worker:
                         datetime.datetime.utcnow(),
                         datetime.datetime.utcnow(),
                     ).save()
-                    print('############# SAIU FAILED #############')
+                    logger.info('############# SAIU FAILED #############')
 
                 except Exception as ex:
                     exceptionhandler.handle_exception(ex)
