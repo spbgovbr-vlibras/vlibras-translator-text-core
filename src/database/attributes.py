@@ -8,3 +8,4 @@ class VideoStatus(Enum):
     GENERATED = auto()
     FAILED = auto()
     EXPIRED = auto()
+    PROCESSING = auto()

@@ -27,6 +27,16 @@ class Worker:
     def __process_message(self, channel, method, properties, body):
         try:
             self.__logger.info("Processing a new video generation request.")
+            
+            logger.info('############# PROCESSING #############')
+            StatusVideosTranslations(
+                VideoStatus.PROCESSING.name.lower(),
+                0,
+                datetime.datetime.utcnow(),
+                datetime.datetime.utcnow(),
+            ).save()
+            logger.info('############# SAIU PROCESSING #############')
+
             videoRequest = None
             statusVideosTranslations = None
 
