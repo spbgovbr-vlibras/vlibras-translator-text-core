@@ -16,5 +16,7 @@ def connect_to_database():
         mongocfg.get("DBPort", "None"),
         mongocfg.get("DBName", "None"))
 
+    print(f'>>>>>>>> CONEXAO {mongourl}')
+
     logger.info("Connecting to {}.".format(mongourl))
     connect(mongourl)

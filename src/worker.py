@@ -38,12 +38,19 @@ class Worker:
 
             videoRequest.save()
 
+            print('############# GENERATING #############')
+            print(VideoStatus.GENERATING.name.lower())
+            print(datetime.datetime.utcnow())
+            print(datetime.datetime.utcnow())
+
             StatusVideosTranslations(
                 VideoStatus.GENERATING.name.lower(),
                 0,
                 datetime.datetime.utcnow(),
                 datetime.datetime.utcnow(),
             ).save()
+            print('############# SAIU GENERATING #############')
+
 
             video_path, video_size, video_duration = self.__videomaker.run(
                 payload.get("gloss", ""),
@@ -56,12 +63,18 @@ class Worker:
             videoRequest.duration = video_duration
             videoRequest.save()
 
+            print('############# GENERATED #############')
+            print(VideoStatus.GENERATED.name.lower())
+            print(video_duration)
+            print(datetime.datetime.utcnow())
+
             StatusVideosTranslations(
                 VideoStatus.GENERATED.name.lower(),
                 video_duration,
                 datetime.datetime.utcnow(),
                 datetime.datetime.utcnow(),
             ).save()
+            print('############# SAIU GENERATED #############')
 
         except Exception as ex:
             exceptionhandler.handle_exception(ex)
@@ -70,12 +83,17 @@ class Worker:
                 try:
                     videoRequest.save()
 
+                    print('############# FAILED #############')
+                    print(VideoStatus.FAILED.name.lower())
+                    print(datetime.datetime.utcnow())
+
                     StatusVideosTranslations(
                         VideoStatus.FAILED.name.lower(),
                         0,
                         datetime.datetime.utcnow(),
                         datetime.datetime.utcnow(),
                     ).save()
+                    print('############# SAIU FAILED #############')
 
                 except Exception as ex:
                     exceptionhandler.handle_exception(ex)
