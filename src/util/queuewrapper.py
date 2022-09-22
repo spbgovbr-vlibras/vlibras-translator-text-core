@@ -56,7 +56,7 @@ class QueueConsumer(QueueWrapper):
         channel = self._connection.channel()
 
         self._logger.debug("Declaring queue '{}'.".format(queue))
-        channel.queue_declare(queue)
+        channel.queue_declare(queue, durable=True,arguments={"x-queue-type": "quorum"})
 
         prefetch = self._rabbitcfg.get("PrefetchCount", "1")
         self._logger.debug("Setting prefetch count to '{}'.".format(prefetch))
