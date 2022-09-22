@@ -10,7 +10,7 @@ function install_system_dependencies {
 
 function install_python_packages {
   echo -e "\nInstalling required python packages..."
-  (python3.6 -m pip install Cython -r requirements.txt) || return 1
+  (python3 -m pip install Cython -r requirements.txt) || return 1
   return 0
 }
 

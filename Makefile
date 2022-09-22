@@ -10,7 +10,7 @@ install:
 start:
 	@CORE_CONFIG_FILE=$(CORE_CONFIG_FILE) \
 	LOGGER_CONFIG_FILE=$(LOGGER_CONFIG_FILE) \
-	python3.6 src/worker.py
+	python3 src/worker.py
 
 dev:
 	@:$(eval CORE_CONFIG_FILE := "$(CURR_DIR)/src/config/settings-dev.ini")

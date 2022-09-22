@@ -5,7 +5,7 @@ import logging.config
 import os
 
 from vlibras_translate import translation
-from scheduletest import RabbitRefreshConnection
+# from util import RabbitRefreshConnection
 
 from util import configreader
 from util import exceptionhandler

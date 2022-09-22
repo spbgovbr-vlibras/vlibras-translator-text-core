@@ -81,7 +81,7 @@ class QueueConsumer(QueueWrapper):
         self._logger.debug("Opening a new consumer channel.")
         consumer = ConsumeSingleton.instance()
         self._logger.debug("Declaring queue '{}'.".format(queue))
-        consumer.channel.queue_declare(queue)
+        consumer.channel.queue_declare(queue, durable=True,arguments={"x-queue-type": "quorum"})
 
         prefetch = self._rabbitcfg.get("PrefetchCount", "1")
         self._logger.debug("Setting prefetch count to '{}'.".format(prefetch))
