@@ -20,11 +20,13 @@ RUN git clone https://github.com/pytorch/fairseq \
     && pip install ./fairseq/
 
 RUN pip install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-translate==1.2.2rc1 \
-    && pip install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-deeplearning==1.2.1rc1
+    && pip install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-deeplearning==1.2.2rc2
 
 RUN  vlibras-translate -r "load" && vlibras-translate -n "load"
 
 FROM pytorch/pytorch:1.6.0-cuda10.1-cudnn7-runtime
+
+RUN pip install --upgrade pip
 
 RUN apt-get update \
   && mkdir -vp /usr/share/man/man1 \
