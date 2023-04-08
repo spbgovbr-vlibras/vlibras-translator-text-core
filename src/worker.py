@@ -30,8 +30,6 @@ class Worker:
         self.rabbitconnectionrefresh = rabbitconnectionrefresh.RabbitRefreshConnection(self.consumer, self.publisher)
         self.rabbitconnectionrefresh.start() 
 
-        
-
     def __reply_message(self, route, message, id):
         self.__logger.info("Sending response to request.")
 
