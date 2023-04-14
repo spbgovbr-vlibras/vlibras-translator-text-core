@@ -13,6 +13,12 @@ RUN pip install --no-cache-dir --upgrade pip wheel
 WORKDIR /opt
 COPY requirements.txt requirements.txt
 
+RUN python -m venv /opt/venv
+
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip install --upgrade pip
+
 RUN apt-get update \
   # System requirements for vlibras-translate
   && apt-get install -y --no-install-recommends build-essential libhunspell-dev \
