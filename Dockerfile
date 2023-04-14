@@ -1,6 +1,16 @@
-FROM pytorch/pytorch:1.6.0-cuda10.1-cudnn7-runtime as build
+FROM python:3.10-slim-bullseye AS build
 
+ARG vlibras_translate_version=1.3.0rc1
+ARG vlibras_deeplearning_version=1.3.0rc1
+ARG torch_version=1.11.0
 
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip install --no-cache-dir --upgrade pip wheel
+
+# Copy worker requirements file into the build container
+WORKDIR /opt
 COPY requirements.txt requirements.txt
 
 RUN python -m venv /opt/venv
@@ -10,47 +20,33 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --upgrade pip
 
 RUN apt-get update \
-  && mkdir -vp /usr/share/man/man1 \
-  && apt-get install -y git gcc g++  openjdk-8-jdk libhunspell-dev \
-  && apt-get autoremove && apt-get clean \
-#  && pip3 install -U pip \
-  && pip install Cython \
-  && pip install -r requirements.txt 
-  # && pip install schedule==1.1.0
+  # System requirements for vlibras-translate
+  && apt-get install -y --no-install-recommends build-essential libhunspell-dev \
+  # PyTorch installed separately so we can use the CPU version instead
+  && pip3 install --no-cache-dir torch==${torch_version} --index-url https://download.pytorch.org/whl/cpu \
+  # vlibras-translator-text-core worker requirements
+  && pip install --no-cache-dir -r requirements.txt
 
-RUN git clone https://github.com/pytorch/fairseq \
-    && pip install ./fairseq/
+# vlibras-translate and vlibras-deeplearning
+RUN pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-translate==${vlibras_translate_version} \
+    && pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-deeplearning==${vlibras_deeplearning_version}
 
-RUN pip install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-translate==1.2.2rc1 \
-    && pip install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-deeplearning==1.2.2rc2
-
-RUN  vlibras-translate -r "load" && vlibras-translate -n "load"
-
-FROM pytorch/pytorch:1.6.0-cuda10.1-cudnn7-runtime
-
-RUN pip install --upgrade pip
-
-RUN apt-get update \
-  && mkdir -vp /usr/share/man/man1 \
-  && apt-get install -y gcc g++ curl git openjdk-8-jdk libhunspell-dev \
-  && curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash \
-  && apt-get install -y git-lfs && git lfs install \
-  && apt-get autoremove && apt-get clean
-
-WORKDIR /dist
+# Second stage
+FROM python:3.10-slim-bullseye
 
 COPY --from=build /opt/venv /opt/venv
-#COPY --from=build /root/.cache /root/.cache
-#COPY --from=build /root/.local /root/.local
-#COPY --from=build /wheels /wheels
-COPY src/ /dist/
-
 ENV PATH="/opt/venv/bin:$PATH"
 
-ENV CORE_CONFIG_FILE /dist/config/settings.ini
+# System requirements for vlibras-translate
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends default-jre libhunspell-dev git-lfs \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ENV LOGGER_CONFIG_FILE /dist/config/logging.ini
+# Set up vlibras-translator-text-core worker
+WORKDIR /dist
+COPY src/ /dist/
+ENV CORE_CONFIG_FILE="/dist/config/settings.ini"
+ENV LOGGER_CONFIG_FILE="/dist/config/logging.ini"
 
-RUN  vlibras-translate -r "load" && vlibras-translate -n "load"
-
-CMD ["python", "worker.py"]
+RUN vlibras-translate -n "Essa tradução irá forçar o download de arquivos externos adicionais."
+CMD ["python3", "worker.py"]
