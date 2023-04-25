@@ -1,8 +1,8 @@
 FROM python:3.10-slim-bullseye AS build
 
-ARG vlibras_translate_version=1.3.0rc1
-ARG vlibras_deeplearning_version=1.3.0rc1
-ARG torch_version=1.11.0
+ARG vlibras_translate_version=1.3.1
+ARG vlibras_deeplearning_version=1.3.1
+ARG torch_version=2.0.0
 
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
