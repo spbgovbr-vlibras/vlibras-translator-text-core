@@ -1,3 +1,5 @@
-pika==1.0.1
+#pika==1.0.1
+pika
+schedule
 retry==0.9.2
-vlibras-translate
+#vlibras-translate
