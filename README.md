@@ -34,7 +34,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### System Requirements
 
-* OS: Ubuntu 18.04.3 LTS (Bionic Beaver)
+* OS: Ubuntu 22.04 LTS (Jammy Jellyfish)
 
 ### Prerequisites
 
@@ -42,53 +42,90 @@ Before starting the installation, you need to install some prerequisites:
 
 ##### [RabbitMQ](https://www.rabbitmq.com/)
 
-Update package indices.
+Follow the [Quick Start script](https://www.rabbitmq.com/install-debian.html#apt-quick-start-cloudsmith) from RabbitMQ:
 
 ```sh
-sudo apt update
+#!/bin/sh
+
+sudo apt-get install curl gnupg apt-transport-https -y
+
+## Team RabbitMQ's main signing key
+curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.rabbitmq.team.gpg > /dev/null
+## Community mirror of Cloudsmith: modern Erlang repository
+curl -1sLf https://ppa1.novemberain.com/gpg.E495BB49CC4BBE5B.key | sudo gpg --dearmor | sudo tee /usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg > /dev/null
+## Community mirror of Cloudsmith: RabbitMQ repository
+curl -1sLf https://ppa1.novemberain.com/gpg.9F4587F226208342.key | sudo gpg --dearmor | sudo tee /usr/share/keyrings/rabbitmq.9F4587F226208342.gpg > /dev/null
+
+## Add apt repositories maintained by Team RabbitMQ
+sudo tee /etc/apt/sources.list.d/rabbitmq.list <<EOF
+## Provides modern Erlang/OTP releases
+##
+deb [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu jammy main
+deb-src [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu jammy main
+
+## Provides RabbitMQ
+##
+deb [signed-by=/usr/share/keyrings/rabbitmq.9F4587F226208342.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu jammy main
+deb-src [signed-by=/usr/share/keyrings/rabbitmq.9F4587F226208342.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu jammy main
+EOF
+
+## Update package indices
+sudo apt-get update -y
+
+## Install Erlang packages
+sudo apt-get install -y erlang-base \
+                        erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
+                        erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
+                        erlang-runtime-tools erlang-snmp erlang-ssl \
+                        erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl
+
+## Install rabbitmq-server and its dependencies
+sudo apt-get install rabbitmq-server -y --fix-missing
 ```
 
-Install prerequisites.
+##### Python 3.10
+
+Can be installed using conda.
+Download and run the [miniconda installer](https://docs.conda.io/en/latest/miniconda.html#linux-installers):
+```sh
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm -rf ~/miniconda3/miniconda.sh
+source ~/miniconda3/bin/activate
+conda init
+```
+
+Relogin to finish the installation.
+
+Create a new environment with python 3.10:
+```sh
+conda create -n text-core python=3.10
+```
+
+Then, activate the environment:
+```sh
+conda activate text-core
+```
+
+
+##### [Vlibras Translate](https://gitlab.lavid.ufpb.br/vlibras2019/vlibras-library/vlibras-translate)
 
 ```sh
-sudo apt install -y curl gnupg apt-transport-https
-```
-
-Install RabbitMQ signing key.
-
-```sh
-curl -fsSL https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc | sudo apt-key add -
-```
-
-Add Bintray repositories that provision latest RabbitMQ and Erlang 21.x releases.
-
-```sh
-echo "deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang-21.x" | tee /etc/apt/sources.list.d/bintray.rabbitmq.list
+make install
 ```
 
 ```sh
-echo "deb https://dl.bintray.com/rabbitmq/debian bionic main" | tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
+python -m pip install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-translate==1.3.1 \
+&& python -m pip  install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-deeplearning==1.3.1
 ```
 
-Update package indices.
 
-```sh
-sudo apt update
-```
-
-Install rabbitmq-server and its dependencies.
-
-```sh
-sudo apt install rabbitmq-server -y --fix-missing
-```
 
 ### Installing
 
 After installing all the prerequisites, install the project by running the command:
 
-```sh
-sudo make install
-```
 
 To test the installation, simply start the Translation Core with the following command:
 
