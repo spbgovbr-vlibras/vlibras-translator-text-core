@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-LINUX_PACKAGES="build-essential python3-pip libhunspell-dev openjdk-8-jdk"
+LINUX_PACKAGES="build-essential default-jre libhunspell-dev git-lfs"
 
 function install_system_dependencies {
   echo "Installing required system dependencies..."
-  (apt --assume-yes install $LINUX_PACKAGES) || return 1
+  (sudo apt --assume-yes --no-install-recommends install $LINUX_PACKAGES) || return 1
   return 0
 }
 
 function install_python_packages {
   echo -e "\nInstalling required python packages..."
-  (python3.6 -m pip install Cython -r requirements.txt) || return 1
+  (python -m pip install Cython -r requirements.txt) || return 1
   return 0
 }
 

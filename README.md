@@ -11,7 +11,7 @@
 
 VLibras Translation Service Core.
 
-![Version](https://img.shields.io/badge/version-v2.3.0-blue.svg)
+![Version](https://img.shields.io/badge/version-v2.4.0-blue.svg)
 ![License](https://img.shields.io/badge/license-LGPLv3-blue.svg)
 ![VLibras](https://img.shields.io/badge/vlibras%20suite-2019-green.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAUCAYAAAC9BQwsAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4wIHCiw3NwjjIgAAAQ9JREFUOMuNkjErhWEYhq/nOBmkDNLJaFGyyyYsZzIZKJwfcH6AhcFqtCvFDzD5CQaTFINSlJJBZHI6J5flU5/P937fube357m63+d+nqBEagNYA9pAExgABxHxktU3882hjqtd9d7/+lCPsvpDZNA+MAXsABNU6xHYQ912ON2qC2qQ/X+J4XQXEVe/jwawCzwNAZp/NCLiDVgHejXgKIkVdGpm/FKXU/BJDfytbpWBLfWzAjxVx1Kuxwno5k84Jex0IpyzdN46qfYSjq18bzMHzQHXudifgQtgBuhHxGvKbaPg0Klaan7GdqE2W39LOq8OCo6X6kgdeJ4IZKUKWq1Y+GHVjF3gveTIe8BiCvwBEZmRAXuH6mYAAAAASUVORK5CYII=)
 
@@ -22,7 +22,7 @@ VLibras Translation Service Core.
   - [Prerequisites](#prerequisites)
   - [Installing](#installing)
 - **[Deployment](#deployment)**
-  - [Deploy Tools](#deploy-tools)
+  - [Deployment Tools](#deployment-tools)
   - [Deploying](#deploying)
 - **[Contributors](#contributors)**
 - **[License](#license)**
@@ -34,43 +34,100 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### System Requirements
 
-* OS: Ubuntu 18.04.2 LTS (Bionic Beaver)
+* OS: Ubuntu 22.04 LTS (Jammy Jellyfish)
 
 ### Prerequisites
 
 Before starting the installation, you need to install some prerequisites:
 
-[RabbitMQ](https://www.rabbitmq.com/)
+##### [RabbitMQ](https://www.rabbitmq.com/)
+
+Follow the [Quick Start script](https://www.rabbitmq.com/install-debian.html#apt-quick-start-cloudsmith) from RabbitMQ:
 
 ```sh
-wget -O - "https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey" | sudo apt-key add -
+#!/bin/sh
+
+sudo apt-get install curl gnupg apt-transport-https -y
+
+## Team RabbitMQ's main signing key
+curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.rabbitmq.team.gpg > /dev/null
+## Community mirror of Cloudsmith: modern Erlang repository
+curl -1sLf https://ppa1.novemberain.com/gpg.E495BB49CC4BBE5B.key | sudo gpg --dearmor | sudo tee /usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg > /dev/null
+## Community mirror of Cloudsmith: RabbitMQ repository
+curl -1sLf https://ppa1.novemberain.com/gpg.9F4587F226208342.key | sudo gpg --dearmor | sudo tee /usr/share/keyrings/rabbitmq.9F4587F226208342.gpg > /dev/null
+
+## Add apt repositories maintained by Team RabbitMQ
+sudo tee /etc/apt/sources.list.d/rabbitmq.list <<EOF
+## Provides modern Erlang/OTP releases
+##
+deb [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu jammy main
+deb-src [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu jammy main
+
+## Provides RabbitMQ
+##
+deb [signed-by=/usr/share/keyrings/rabbitmq.9F4587F226208342.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu jammy main
+deb-src [signed-by=/usr/share/keyrings/rabbitmq.9F4587F226208342.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu jammy main
+EOF
+
+## Update package indices
+sudo apt-get update -y
+
+## Install Erlang packages
+sudo apt-get install -y erlang-base \
+                        erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
+                        erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
+                        erlang-runtime-tools erlang-snmp erlang-ssl \
+                        erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl
+
+## Install rabbitmq-server and its dependencies
+sudo apt-get install rabbitmq-server -y --fix-missing
+```
+
+##### Python 3.10
+
+Can be installed using conda.
+Download and run the [miniconda installer](https://docs.conda.io/en/latest/miniconda.html#linux-installers):
+```sh
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm -rf ~/miniconda3/miniconda.sh
+source ~/miniconda3/bin/activate
+conda init
+```
+
+Relogin to finish the installation.
+
+Create a new environment with python 3.10:
+```sh
+conda create -n text-core python=3.10
+```
+
+Then, activate the environment:
+```sh
+conda activate text-core
+```
+
+
+##### [Vlibras Translate](https://gitlab.lavid.ufpb.br/vlibras2019/vlibras-library/vlibras-translate)
+
+```sh
+make install
 ```
 
 ```sh
-curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
+python -m pip install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-translate==1.3.1 \
+&& python -m pip  install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-deeplearning==1.3.1
 ```
 
-```sh
-sudo apt install -y rabbitmq-server --fix-missing
-```
+
 
 ### Installing
 
 After installing all the prerequisites, install the project by running the command:
 
-```sh
-cd worker/
-```
-
-```sh
-sudo make install
-```
 
 To test the installation, simply start the Translation Core with the following command:
-
-```sh
-cd worker/
-```
 
 ```sh
 make dev start
@@ -80,119 +137,56 @@ make dev start
 
 These instructions will get you a copy of the project up and running on a live System.
 
-### Deploy Tools
+### Deployment Tools
 
-To fully deployment of this project its necessary to have installed and configured the Docker Engine and Kubernetes Container Orchestration.
+To fully deployment of this project its necessary to have installed and configured the Docker Engine and Docker Compose.
 
-[Docker](https://www.docker.com/)
+##### [Docker](https://www.docker.com/)
 
-Update the apt package index:
+Download get-docker script.
 
 ```sh
-sudo apt update
+curl -fsSL https://get.docker.com -o get-docker.sh
 ```
 
-Install packages to allow apt to use a repository over HTTPS:
+Install the latest version of Docker.
 
 ```sh
-sudo apt install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+sudo sh get-docker.sh
 ```
 
-Add Docker’s official GPG key:
+##### [Docker Compose](https://docs.docker.com/compose/)
+
+Download the current stable release of Docker Compose.
 
 ```sh
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 ```
 
-Use the following command to set up the stable repository:
+Apply executable permissions to the binary.
 
 ```sh
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-```
-
-Update the apt package index:
-
-```sh
-sudo apt update
-```
-
-Install the latest version of Docker and containerd:
-
-```sh
-sudo apt install -y docker-ce docker-ce-cli containerd.io
-```
-
-[Kubernetes](https://kubernetes.io/)
-
-Update the apt package index:
-
-```sh
-sudo apt update
-```
-
-Install packages to allow apt to use a repository over HTTPS:
-
-```sh
-sudo apt install -y apt-transport-https
-```
-
-Add Kubernetes’s official GPG key:
-
-```sh
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-```
-
-Use the following command to set up the main repository:
-
-```sh
-echo "deb https://apt.kubernetes.io/ kubernetes-bionic main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-```
-
-Update the apt package index:
-
-```sh
-sudo apt update
-```
-
-Install the kubectl:
-
-```sh
-sudo apt install -y kubectl
+sudo chmod +x /usr/local/bin/docker-compose
 ```
 
 ### Deploying
 
-> Note: if you already have RabbitMQ running on your cluster, skip to the server configuration.
+Before deploying the project, check the [docker-compose.yml](docker-compose.yml) file and review the following environment variables:
 
-Once kubectl is installed and set, run the following commands:
-
-```sh
-kubectl apply -f kubernetes/rabbitmq.yaml
+```yml
+AMQP_HOST: rabbitmq
+AMQP_PORT: 5672
+AMQP_USER: vlibras
+AMQP_PASS: vlibras
+AMQP_PREFETCH_COUNT: 1
+TRANSLATOR_QUEUE: "translate.to_text"
+ENABLE_DL_TRANSLATION: "false"
 ```
 
-```sh
-kubectl expose deployment rabbitmq --type=ClusterIP
-```
-
-The commands above will start the RabbitMQ pods. You must configure a volume set to be used by it. By default it set to be used in a Google Cloud Platform (GCP).
-
-Then, open the translator-text-server-template.yaml file and edit the environment variable below to match your settings.
+Finally, deploy the project by running:
 
 ```sh
-- name: AMQP_HOST
-  value: "RABBITMQ-IP"
-  - name: AMQP_PORT
-  value: "RABBITMQ-PORT"
-```
-
-Finally, starting the server by running the commands:
-
-```sh
-kubectl apply -f kubernetes/translator-text-server-template.yaml
-```
-
-```sh
-kubectl expose deployment translatortext --port=80 --type=LoadBalancer
+sudo docker-compose up
 ```
 
 ## Contributors
