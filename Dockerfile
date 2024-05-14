@@ -45,8 +45,6 @@ RUN apt-get update \
 # Set up vlibras-translator-text-core worker
 WORKDIR /dist
 COPY src/ /dist/
-ENV CORE_CONFIG_FILE="/dist/config/settings.ini"
-ENV LOGGER_CONFIG_FILE="/dist/config/logging.ini"
 
 RUN vlibras-translate -n "Essa tradução irá forçar o download de arquivos externos adicionais."
 CMD ["python3", "worker.py"]
