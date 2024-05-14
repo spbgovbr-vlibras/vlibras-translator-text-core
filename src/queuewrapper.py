@@ -16,7 +16,7 @@ from retry import retry
 
 from config import settings
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
