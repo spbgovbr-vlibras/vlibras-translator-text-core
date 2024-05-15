@@ -30,5 +30,6 @@ services:
 networks:
   rabbitmq-net:
 
+
 volumes:
   rabbitmq-data:

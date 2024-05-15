@@ -2,7 +2,7 @@ import json
 import logging
 import threading
 
-from vlibras_translate import translation
+from vlibras_translator import translate
 
 from config import settings
 from exceptionhandler import handle_exception
@@ -27,12 +27,13 @@ class Worker:
         self.publisher = QueuePublisher()
 
         self.translator_queue = translator_queue
-        self.neural = neural
 
-        if neural:
-            self.translate = translation.Translation().rule_translation_with_dl
-        else:
-            self.translate = translation.Translation().rule_translation
+        self.translator = translate.Translator()
+
+        self.translate = lambda text: self.translator.translate(
+            text,
+            neural=neural
+        )
 
         self.threads = []
 

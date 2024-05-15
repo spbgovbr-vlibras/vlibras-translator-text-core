@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     AMQP_HOST: str
     AMQP_USER: str
     AMQP_PASS: str
-    AMQP_PORT: str | int = 5672
+    AMQP_PORT: str | int
     AMQP_PREFETCH_COUNT: int = 1
     AMQP_HEART_BEAT: int = 60
     AMQP_URI: AmqpDsn | None

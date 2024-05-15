@@ -15,7 +15,7 @@ class HealthcheckHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        self.wfile.write("OK".encode())
+        self.wfile.write(b"OK")
 
     def log_message(self, format, *args):
         logger.debug("Healthcheck from %s %s" %
@@ -23,7 +23,7 @@ class HealthcheckHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
 
 def _create_healthcheck_Server(port):
-    logger.debug("Starting healthcheck server on port {}.".format(port))
+    logger.debug(f"Starting healthcheck server on port {port}.")
     server = http.server.HTTPServer(('', port), HealthcheckHTTPRequestHandler)
     server.serve_forever()
 
