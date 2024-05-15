@@ -175,7 +175,7 @@ class QueueConsumer(QueueWrapper):
 
     def _configure_blocking_channel(self, queue: str) -> None:
         self._channel = self._connection.channel()
-        self._channel.queue_declare(queue, durable=True)
+        self._channel.queue_declare(queue, durable=False)
         self._channel.basic_qos(prefetch_count=self._prefetch)
 
     @retry(AMQPConnectionError, delay=1, max_delay=5, jitter=1)
