@@ -7,7 +7,7 @@ ARG torch_version=2.0.0
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip install --no-cache-dir --upgrade pip wheel
+RUN pip install --no-cache-dir --upgrade pip==24 wheel
 
 # Copy worker requirements file into the build container
 WORKDIR /opt
@@ -17,7 +17,7 @@ RUN python -m venv /opt/venv
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip==24
 
 RUN apt-get update \
   # System requirements for vlibras-translator
@@ -29,7 +29,8 @@ RUN apt-get update \
 
 # vlibras-translator and vlibras-number
 RUN pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-number==${vlibras_number_version} \
-  && pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "vlibras-translator[neural]"==${vlibras_translator_version}
+  && pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "vlibras-translator[neural]"==${vlibras_translator_version} \
+  && pip install  --no-cache-dir numpy==1.24.2
 
 # Second stage
 FROM python:3.10-slim-bullseye
