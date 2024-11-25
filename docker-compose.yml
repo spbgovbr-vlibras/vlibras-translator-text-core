@@ -1,8 +1,8 @@
 version: "3"
 services:
   vlibras-translator-text-core:
-    build: .
-    image: vlibras_translator_core/text:2.4.0
+    # build: .
+    image: vlibras/vlibras-translator-text-core:4.2.0
     networks:
       - rabbitmq-net
     environment:
@@ -12,7 +12,7 @@ services:
       AMQP_PASS: vlibras
       AMQP_PREFETCH_COUNT: 1
       TRANSLATOR_QUEUE: "translate.to_text"
-      ENABLE_DL_TRANSLATION: "false"
+      ENABLE_DL_TRANSLATION: "true"
       HEALTHCHECK_PORT: 80
     depends_on:
       - rabbitmq
@@ -23,13 +23,15 @@ services:
       - rabbitmq-net
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - 5673:5672
+      - 15673:15672
     environment:
       RABBITMQ_DEFAULT_USER: vlibras
       RABBITMQ_DEFAULT_PASS: vlibras
 
 networks:
   rabbitmq-net:
-
 
 volumes:
   rabbitmq-data:

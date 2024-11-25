@@ -30,8 +30,8 @@ RUN apt-get update \
 # vlibras-translator and vlibras-number
 RUN pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-number==${vlibras_number_version} \
   && pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "vlibras-translator[neural]"==${vlibras_translator_version} \
-  && pip install  --no-cache-dir numpy==1.24.2
-
+  && pip install --no-cache-dir numpy==1.24.2
+  
 # Second stage
 FROM python:3.10-slim-bullseye
 
