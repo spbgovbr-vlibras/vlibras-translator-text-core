@@ -1,97 +1,160 @@
-#!/usr/bin/env python3.6
-
 import json
-import logging.config
-import os
+import logging
+import threading
 
-from vlibras_translate import translation
+from vlibras_translator import translate
 
-from util import configreader
-from util import exceptionhandler
-from util import healthcheck
-from util import queuewrapper
+from config import settings
+from exceptionhandler import handle_exception
+from healthcheck import run_healthcheck_thread
+from queuewrapper import QueueConsumer, QueuePublisher
+
+logging.basicConfig(
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    datefmt="%d-%m-%Y %H:%M:%S",
+)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class Worker:
+    """Main worker"""
 
-    def __init__(self, dlmode):
-        self.__logger = logging.getLogger(self.__class__.__name__)
+    def __init__(self, translator_queue: str, neural: bool = True):
+        """Constructor."""
+        self.consumer = QueueConsumer()
+        self.publisher = QueuePublisher()
 
-        if (dlmode == "true"):
-            self.__translate = translation.Translation().rule_translation_with_dl
-        else:
-            self.__translate = translation.Translation().rule_translation
+        self.translator_queue = translator_queue
 
-        self.__consumer = queuewrapper.QueueConsumer()
-        self.__publisher = queuewrapper.QueuePublisher()
+        self.translator = translate.Translator()
 
-    def __reply_message(self, route, message, id):
-        self.__logger.info("Sending response to request.")
+        self.translate = lambda text: self.translator.translate(
+            text,
+            neural=neural
+        )
+
+        self.threads = []
+
+    def ack_message(self, channel, delivery_tag):
+        self.consumer._connection.add_callback_threadsafe(
+            lambda: channel.basic_ack(delivery_tag),
+        )
+
+    def reply_message(self, route, message, id):
+        logger.info("Sending response to request.")
 
         if id is None:
-            self.__logger.error("The request don't have correlation_id.")
+            logger.error("The request don't have correlation_id.")
 
         if route is None:
-            self.__logger.error("The request don't have reply_to route.")
+            logger.error("The request don't have reply_to route.")
         else:
-            self.__publisher.publish_to_queue(route, message, id)
+            self.publisher.publish_to_queue(route, message, id)
 
-    def __process_message(self, channel, method, properties, body):
+    def on_message(self, channel, delivery_tag, properties, body):
+        """Do worker task"""
+
+        logger.debug("Processing a new request on a separate thread")
+
         try:
-            self.__logger.info("Processing a new translation request.")
+            logger.info("Processing a new translation request.")
             payload = json.loads(body)
-            gloss = self.__translate(payload.get("text", ""))
+            gloss = self.translate(payload.get("text", ""))
 
-            self.__reply_message(
+            self.reply_message(
                 route=properties.reply_to,
                 message=json.dumps({"translation": gloss}),
-                id=properties.correlation_id)
+                id=properties.correlation_id
+            )
 
         except Exception as ex:
-            exceptionhandler.handle_exception(ex)
+            handle_exception(ex)
 
-            self.__reply_message(
+            self.reply_message(
                 route=properties.reply_to,
                 message=json.dumps({"error": "Translator internal error."}),
-                id=properties.correlation_id)
+                id=properties.correlation_id
+            )
 
         finally:
             if channel.is_open:
-                channel.basic_ack(delivery_tag=method.delivery_tag)
+                self.ack_message(channel, delivery_tag)
 
-    def start(self, queue):
-        self.__logger.debug("Starting queue consumer.")
-        self.__consumer.consume_from_queue(queue, self.__process_message)
+    def process_message(self, channel, method, properties, body):
+        """
+        The task potentially takes a long time to finish. So, we run
+        the task in a separate thread making sure the RabbitMQ I/O
+        loop is not blocked.
+        """
+
+        # Clean up the list of threads, so it doesn't keep appending
+        for t in self.threads:
+            if not t.is_alive():
+                t.handled = True
+        self.threads = [t for t in self.threads if not t.handled]
+
+        thread = threading.Thread(
+            target=self.on_message,
+            args=(channel, method.delivery_tag, properties, body),
+        )
+        thread.handled = False
+        thread.start()
+        self.threads.append(thread)
+
+    def start(self):
+        """Start message queue consumer"""
+        logger.debug("Starting queue consumer")
+        self.consumer.consume_from_queue(
+            self.translator_queue,
+            self.process_message,
+        )
+
+        for thread in self.threads:
+            thread.join()
+
+        self.consumer._connection.process_data_events()
+        self.consumer.close_connection()
+
+    def exit_gracefully(self, signum, frame):
+        """Stop consuming queue but finish current messages."""
+        self.consumer.stop_consuming()
 
     def stop(self):
-        self.__logger.debug("Stopping queue consumer.")
-        self.__consumer.close_connection()
-        self.__logger.debug("Stopping queue publisher.")
-        self.__publisher.close_connection()
+        """Stop message queue consumers."""
+        logger.debug("Stopping queue consumer")
+        self.consumer.close_connection()
+        logger.debug("Stopping queue publisher")
+        self.publisher.close_connection()
 
 
 if __name__ == "__main__":
-    logging.config.fileConfig(os.environ.get("LOGGER_CONFIG_FILE", ""))
-    logger = logging.getLogger(__name__)
 
-    workercfg = configreader.load_configs("Worker")
+    from signal import SIGTERM, signal
 
-    if not workercfg:
-        raise SystemExit(1)
+    worker = None
 
     try:
-        healthcheck.run_healthcheck_thread(workercfg.get("HealthServerPort"))
-        logger.info("Creating Translation Worker.")
-        worker = Worker(workercfg.get("DLTranslationMode", "false"))
-        logger.info("Starting Translation Worker.")
-        worker.start(workercfg.get("TranslatorQueue"))
+        logger.info("Trying to create translation worker")
+
+        run_healthcheck_thread(settings.HEALTHCHECK_PORT)
+
+        worker = Worker(
+            translator_queue=settings.TRANSLATOR_QUEUE,
+            neural=settings.ENABLE_DL_TRANSLATION
+        )
+
+        logger.info("Starting translation worker")
+
+        signal(SIGTERM, worker.exit_gracefully)
+        worker.start()
 
     except KeyboardInterrupt:
-        logger.info("KeyboardInterrupt: stopping Translation Worker.")
-
+        logger.error("KeyboardInterrupt: stopping translation worker")
     except Exception:
-        logger.exception("Unexpected error has occured in Translation Worker.")
-
+        logger.exception("Unexpected error has occured in translation worker")
     finally:
-        worker.stop()
-        raise SystemExit(1)
+        if worker:
+            worker.stop()
+            SystemExit(1)
