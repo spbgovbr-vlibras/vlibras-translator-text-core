@@ -62,10 +62,16 @@ class Worker:
             logger.info("Processing a new translation request.")
             payload = json.loads(body)
             gloss = self.translate(payload.get("text", ""))
+            version = self.translator.version
+
+            message = json.dumps({
+                'translation': gloss,
+                'version': version
+            })
 
             self.reply_message(
                 route=properties.reply_to,
-                message=json.dumps({"translation": gloss}),
+                message=message,
                 id=properties.correlation_id
             )
 
