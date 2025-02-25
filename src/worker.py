@@ -35,6 +35,18 @@ class Worker:
             neural=neural
         )
 
+        self.version = None
+
+        try:
+            self.version = self.translator.version
+        # For compatibility with older versions of the vlibras_translator
+        except Exception:
+            import importlib.metadata
+            self.version = importlib.metadata.version("vlibras_translator")
+        finally:
+            logger.info(
+                f'VLibras translator core uses vlibras_translator v{self.version}')
+
         self.threads = []
 
     def ack_message(self, channel, delivery_tag):
@@ -62,11 +74,10 @@ class Worker:
             logger.info("Processing a new translation request.")
             payload = json.loads(body)
             gloss = self.translate(payload.get("text", ""))
-            version = self.translator.version
 
             message = json.dumps({
                 'translation': gloss,
-                'version': version
+                'version': self.version
             })
 
             self.reply_message(
