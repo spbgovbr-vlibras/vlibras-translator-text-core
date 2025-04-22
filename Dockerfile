@@ -1,4 +1,4 @@
-FROM python:3.10-slim-bullseye AS build
+FROM public.ecr.aws/docker/library/python:3.10-slim-bullseye AS build
 
 ARG vlibras_translator_version=1.0.0
 ARG vlibras_number_version=1.0.0
@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simpl
   && pip install --no-cache-dir numpy==1.24.2
 
 # Second stage
-FROM python:3.10-slim-bullseye
+FROM public.ecr.aws/docker/library/python:3.10-slim-bullseye
 
 COPY --from=build /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
