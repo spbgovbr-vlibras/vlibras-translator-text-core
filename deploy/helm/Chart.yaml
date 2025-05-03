@@ -1,0 +1,15 @@
+apiVersion: v2
+name: tradcore
+description: Módulo de Tradução por IA do Vlibras.
+maintainers:
+  - name: Ministério da Gestão e Inovação em Serviços Públicos
+    email: sgd@gestao.gov.br
+type: application
+version: 0.1.1
+appVersion: "1.16.1"
+keywords:
+  - vlibras
+  - backend
+  - nodejs
+  - redis
+  - rabbitmq
