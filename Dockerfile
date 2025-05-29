@@ -1,8 +1,8 @@
 FROM public.ecr.aws/docker/library/archlinux:latest AS build
 
-ARG vlibras_translator_version=1.0.0
+ARG vlibras_translator_version=1.1.0rc1
 ARG vlibras_number_version=1.0.0
-ARG torch_version=2.0.0
+ARG torch_version=2.6.0
 
 # Instalar dependências base e compilar Python 3.10
 RUN pacman -Syu --noconfirm \
@@ -55,7 +55,8 @@ RUN pip3 install --no-cache-dir torch==${torch_version} --index-url https://down
 # vlibras-translator and vlibras-number
 RUN pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-number==${vlibras_number_version} \
   && pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "vlibras-translator[neural]"==${vlibras_translator_version} \
-  && pip install --no-cache-dir numpy==1.24.2
+  && pip install --no-cache-dir numpy==1.24.2 \ 
+  && pip install --no-cache-dir git+https://github.com/diegoramonbs/fairseq.git@vlibras
 
 # Second stage
 FROM public.ecr.aws/docker/library/archlinux:latest
