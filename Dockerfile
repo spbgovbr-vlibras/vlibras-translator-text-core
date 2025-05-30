@@ -10,6 +10,7 @@ RUN pacman -Syu --noconfirm \
        base-devel \
        hunspell \
        git \
+       git-lfs \
        wget \
        curl \
        openssl \
@@ -19,6 +20,7 @@ RUN pacman -Syu --noconfirm \
        sqlite \
        libffi \
        xz \
+    && git lfs install \
     && pacman -Scc --noconfirm
 
 # Compilar e instalar Python 3.10.17 do código fonte (mesma versão da imagem original)
@@ -79,6 +81,9 @@ RUN pacman -Syu --noconfirm --needed \
        libffi \
        xz \
        wget \
+       git \
+       git-lfs \
+    && git lfs install \
     && pacman -Scc --noconfirm \
     && rm -rf /var/cache/pacman/pkg/*
 
@@ -100,8 +105,12 @@ COPY ./src /dist/
 RUN pip install nltk --upgrade
 RUN python3 -m nltk.downloader all
 RUN pip install Jinja2 --upgrade
+RUN pip uninstall -y py
+RUN pip install --no-cache-dir --force-reinstall git+https://github.com/diegoramonbs/fairseq.git@vlibras 
+RUN pip install --no-cache-dir --force-reinstall numpy==1.26.0
 
-RUN rm -rf /usr/local/lib/python3.10/site-packages
+RUN rm -rf /usr/local/lib/python3.10/site-packages	
+
 
 # Tornar o download opcional - se falhar, o modelo será baixado na primeira execução
 RUN vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || \
