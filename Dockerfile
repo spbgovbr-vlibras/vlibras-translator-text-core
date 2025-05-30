@@ -97,6 +97,9 @@ RUN cd /tmp \
 WORKDIR /dist
 COPY ./src /dist/
 
+RUN pip install nltk --upgrade
+RUN python3 -m nltk.downloader all
+
 # Tornar o download opcional - se falhar, o modelo será baixado na primeira execução
 RUN vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || \
     echo "Download do modelo falhou durante o build - será baixado na primeira execução"
