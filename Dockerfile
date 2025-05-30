@@ -36,7 +36,8 @@ RUN cd /tmp \
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip install --no-cache-dir --upgrade pip==24 wheel setuptools
+RUN pip install --no-cache-dir --upgrade pip==24 wheel 
+RUN pip install --no-cache-dir setuptools==80.9.0
 
 # Copy worker requirements file into the build container
 WORKDIR /opt
@@ -46,7 +47,8 @@ RUN python -m venv /opt/venv
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip install --upgrade pip==24 setuptools
+RUN pip install --upgrade pip==24
+RUN pip install --no-cache-dir setuptools==80.9.0
 
 RUN pip3 install --no-cache-dir torch==${torch_version} --index-url https://download.pytorch.org/whl/cpu \
   # vlibras-translator-text-core worker requirements
