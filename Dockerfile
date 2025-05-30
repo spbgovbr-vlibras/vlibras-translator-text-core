@@ -99,6 +99,9 @@ COPY ./src /dist/
 
 RUN pip install nltk --upgrade
 RUN python3 -m nltk.downloader all
+RUN pip install Jinja2 --upgrade
+
+RUN rm -rf /usr/local/lib/python3.10/site-packages
 
 # Tornar o download opcional - se falhar, o modelo será baixado na primeira execução
 RUN vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || \
