@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/ubuntu:jammy AS build
+FROM public.ecr.aws/docker/library/ubuntu:22.04 AS build
 
 ARG vlibras_translator_version=1.1.0rc1
 ARG vlibras_number_version=1.0.0
@@ -62,7 +62,7 @@ RUN pip install --no-cache-dir torch==${torch_version} --index-url https://downl
 # ------------------------------
 # Stage final (runtime)
 # ------------------------------
-FROM public.ecr.aws/docker/library/ubuntu:jammy
+FROM public.ecr.aws/docker/library/ubuntu:22.04
 
 # Copiar venv e python compilado
 COPY --from=build /opt/venv /opt/venv
