@@ -5,7 +5,7 @@ ARG vlibras_number_version=1.0.0
 ARG torch_version=2.6.0
 
 # Atualizar sistema e instalar dependências base
-RUN apt-get update \
+RUN apt-get update --fix-missing \
     && apt-get install -y --no-install-recommends \
     build-essential \
     hunspell \
@@ -71,7 +71,7 @@ COPY --from=build /usr/local /usr/local
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Instalar dependências de runtime
-RUN apt-get update \
+RUN apt-get update --fix-missing \
     && apt-get install -y --no-install-recommends \
     hunspell \
     build-essential \
