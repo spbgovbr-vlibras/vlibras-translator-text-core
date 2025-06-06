@@ -1,115 +1,100 @@
-FROM public.ecr.aws/docker/library/ubuntu:jammy AS build
+FROM public.ecr.aws/docker/library/archlinux:latest AS build
 
 ARG vlibras_translator_version=1.1.0rc1
 ARG vlibras_number_version=1.0.0
 ARG torch_version=2.6.0
 
-# Configurar timezone para evitar prompts interativos
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=UTC
-
-# Instalar dependências base e Python 3.10
-RUN apt-get update \
-    && apt-get install -y \
-       build-essential \
-       hunspell \
-       git \
-       git-lfs \
-       wget \
-       curl \
-       libssl-dev \
-       zlib1g-dev \
-       libbz2-dev \
-       libreadline-dev \
-       libsqlite3-dev \
-       libffi-dev \
-       liblzma-dev \
-       python3.10 \
-       python3.10-dev \
-       python3.10-venv \
-       python3-pip \
-       pkg-config \
+# Instalar dependências base e ferramentas para compilar o Python
+RUN pacman -Syu --noconfirm \
+    && pacman -S --noconfirm \
+    base-devel \
+    hunspell \
+    git \
+    git-lfs \
+    wget \
+    curl \
+    openssl \
+    zlib \
+    bzip2 \
+    readline \
+    sqlite \
+    libffi \
+    xz \
     && git lfs install \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && yes | pacman -Scc \
+    && rm -rf /var/cache/pacman/pkg/* /root/.cache
 
-# Criar links simbólicos para Python
-RUN ln -sf /usr/bin/python3.10 /usr/bin/python3 \
-    && ln -sf /usr/bin/python3.10 /usr/bin/python
+# Compilar e instalar Python 3.10.17
+RUN cd /tmp \
+    && wget https://www.python.org/ftp/python/3.10.17/Python-3.10.17.tgz \
+    && tar -xzf Python-3.10.17.tgz \
+    && cd Python-3.10.17 \
+    && ./configure --enable-optimizations --prefix=/usr/local \
+    && make -j"$(nproc)" \
+    && make altinstall \
+    && cd / && rm -rf /tmp/Python-3.10.17* \
+    && ln -sf /usr/local/bin/python3.10 /usr/local/bin/python3 \
+    && python3 -m ensurepip --upgrade
 
 # Criar ambiente virtual
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip install --no-cache-dir --upgrade pip==24 wheel 
-RUN pip install --no-cache-dir setuptools==80.9.0
+# Instalar pip, wheel, setuptools
+RUN pip install --no-cache-dir --upgrade pip==24 wheel setuptools==80.9.0
 
-# Copy worker requirements file into the build container
+# Instalar dependências do projeto
 WORKDIR /opt
 COPY requirements.txt requirements.txt
 
-RUN pip install --upgrade pip==24
-RUN pip install --no-cache-dir setuptools==80.9.0
+RUN pip install --no-cache-dir torch==${torch_version} --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-number==${vlibras_number_version} \
+    && pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "vlibras-translator[neural]"==${vlibras_translator_version} \
+    && pip install --no-cache-dir numpy==1.24.2 \
+    && pip install --no-cache-dir --force-reinstall git+https://github.com/diegoramonbs/fairseq.git@vlibras
 
-RUN pip3 install --no-cache-dir torch==${torch_version} --index-url https://download.pytorch.org/whl/cpu \
-  # vlibras-translator-text-core worker requirements
-  && pip install --no-cache-dir -r requirements.txt
+# ------------------------------
+# Stage final (runtime)
+# ------------------------------
+FROM public.ecr.aws/docker/library/archlinux:latest
 
-# vlibras-translator and vlibras-number
-RUN pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlibras-number==${vlibras_number_version} \
-  && pip install --no-cache-dir --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "vlibras-translator[neural]"==${vlibras_translator_version} \
-  && pip install --no-cache-dir numpy==1.24.2 \ 
-  && pip install --no-cache-dir git+https://github.com/diegoramonbs/fairseq.git@vlibras
-
-# Second stage
-FROM public.ecr.aws/docker/library/ubuntu:jammy
-
-# Configurar timezone para evitar prompts interativos
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=UTC
-
+# Copiar venv e python compilado
 COPY --from=build /opt/venv /opt/venv
+COPY --from=build /usr/local /usr/local
+
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Instalar dependências de runtime
-RUN apt-get update \
-    && apt-get install -y \
-       hunspell \
-       build-essential \
-       libssl-dev \
-       zlib1g-dev \
-       libbz2-dev \
-       libreadline-dev \
-       libsqlite3-dev \
-       libffi-dev \
-       liblzma-dev \
-       wget \
-       git \
-       git-lfs \
-       python3.10 \
-       python3.10-dev \
-       python3-pip \
-       pkg-config \
+# Instalar dependências de runtime com --overwrite para evitar conflito
+RUN pacman -Syu --noconfirm --needed \
+    && pacman -S --noconfirm --needed --overwrite "*" \
+    hunspell \
+    base-devel \
+    openssl \
+    zlib \
+    bzip2 \
+    readline \
+    sqlite \
+    libffi \
+    xz \
+    wget \
+    git \
+    git-lfs \
     && git lfs install \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && yes | pacman -Scc \
+    && rm -rf /var/cache/pacman/pkg/* /root/.cache
 
-# Criar links simbólicos para Python
-RUN ln -sf /usr/bin/python3.10 /usr/bin/python3 \
-    && ln -sf /usr/bin/python3.10 /usr/bin/python
-
-# Set up vlibras-translator-text-core worker
+# Copiar código-fonte do worker
 WORKDIR /dist
 COPY ./src /dist/
 
-RUN pip install nltk --upgrade
-RUN python3 -m nltk.downloader all
-RUN pip install Jinja2 --upgrade
-RUN pip uninstall -y py
-RUN pip install --no-cache-dir --force-reinstall git+https://github.com/diegoramonbs/fairseq.git@vlibras 
-RUN pip install --no-cache-dir --force-reinstall numpy==1.26.0
+# Instalar NLTK e outros pacotes auxiliares
+RUN pip install --no-cache-dir --upgrade nltk Jinja2 \
+    && python3 -m nltk.downloader wordnet \
+    && pip uninstall -y py \
+    && pip install --no-cache-dir --force-reinstall numpy==1.26.0
 
-# Tornar o download opcional - se falhar, o modelo será baixado na primeira execução
+# Tentativa opcional de baixar modelo
 RUN vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || \
     echo "Download do modelo falhou durante o build - será baixado na primeira execução"
 
