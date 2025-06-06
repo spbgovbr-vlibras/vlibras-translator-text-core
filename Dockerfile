@@ -1,33 +1,20 @@
-FROM public.ecr.aws/docker/library/ubuntu:22.04 AS build
+FROM public.ecr.aws/docker/library/ubuntu:20.04 AS build
 
 ARG vlibras_translator_version=1.1.0rc1
 ARG vlibras_number_version=1.0.0
 ARG torch_version=2.6.0
 
 # Atualizar sistema e instalar dependências base
-RUN apt-get update --fix-missing \
-    && apt-get install -y --no-install-recommends \
-    build-essential \
-    hunspell \
-    git \
-    git-lfs \
-    wget \
-    curl \
-    ca-certificates \
-    libssl-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libffi-dev \
-    liblzma-dev \
-    libncurses5-dev \
-    libgdbm-dev \
-    libnss3-dev \
-    libgdbm-compat-dev \
-    && git lfs install \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends build-essential
+RUN apt-get install -y --no-install-recommends hunspell git wget curl ca-certificates
+RUN apt-get install -y --no-install-recommends libssl-dev zlib1g-dev libbz2-dev
+RUN apt-get install -y --no-install-recommends libreadline-dev libsqlite3-dev libffi-dev
+RUN apt-get install -y --no-install-recommends liblzma-dev libncurses5-dev libgdbm-dev
+RUN apt-get install -y --no-install-recommends libnss3-dev libgdbm-compat-dev
+RUN apt-get install -y --no-install-recommends git-lfs
+RUN git lfs install
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Compilar e instalar Python 3.10.17
 RUN cd /tmp \
@@ -62,7 +49,7 @@ RUN pip install --no-cache-dir torch==${torch_version} --index-url https://downl
 # ------------------------------
 # Stage final (runtime)
 # ------------------------------
-FROM public.ecr.aws/docker/library/ubuntu:22.04
+FROM public.ecr.aws/docker/library/ubuntu:20.04
 
 # Copiar venv e python compilado
 COPY --from=build /opt/venv /opt/venv
@@ -71,28 +58,16 @@ COPY --from=build /usr/local /usr/local
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Instalar dependências de runtime
-RUN apt-get update --fix-missing \
-    && apt-get install -y --no-install-recommends \
-    hunspell \
-    build-essential \
-    libssl3 \
-    zlib1g \
-    libbz2-1.0 \
-    libreadline8 \
-    sqlite3 \
-    libffi8 \
-    liblzma5 \
-    libncurses5 \
-    libgdbm6 \
-    libnss3 \
-    libgdbm-compat4 \
-    wget \
-    git \
-    git-lfs \
-    ca-certificates \
-    && git lfs install \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends build-essential
+RUN apt-get install -y --no-install-recommends hunspell git wget curl ca-certificates
+RUN apt-get install -y --no-install-recommends libssl-dev zlib1g-dev libbz2-dev
+RUN apt-get install -y --no-install-recommends libreadline-dev libsqlite3-dev libffi-dev
+RUN apt-get install -y --no-install-recommends liblzma-dev libncurses5-dev libgdbm-dev
+RUN apt-get install -y --no-install-recommends libnss3-dev libgdbm-compat-dev
+RUN apt-get install -y --no-install-recommends git-lfs
+RUN git lfs install
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copiar código-fonte do worker
 WORKDIR /dist
