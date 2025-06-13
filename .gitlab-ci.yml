@@ -2,9 +2,9 @@ variables:
   # Application variables
   APP_NAME: tradutor-core
   KUBE_NAMESPACE: vlibras
-  APP_URL_DTH: ""
-  APP_URL_HOM: ""
-  APP_URL_PRD: ""
+  APP_URL_DTH: "tradutor-coredth.vlibras.gov.br"
+  APP_URL_HOM: "tradutor-corehom.vlibras.gov.br"
+  APP_URL_PRD: "tradutor-coreprd.vlibras.gov.br"
   IMAGE_LOCATION: "$CI_REGISTRY_IMAGE"
   #KB_CONTEXT_DTH: $KUBE_CONTEXT_DTH
   CHART_FOLDER: deploy/helm
@@ -19,7 +19,7 @@ variables:
 stages:
   - build
   - container-scan
-#  - sync-deploy
+  - sync-deploy
 
 include:
 - project: sgd/pipeline-template
@@ -36,5 +36,5 @@ container_build:
   variables:
     DOCKERFILE_LOCATION: "Dockerfile"
 
-#sync-deploy:
-#  extends: .argocd:sync
+sync-deploy:
+  extends: .argocd:sync
