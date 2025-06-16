@@ -1,6 +1,6 @@
 variables:
   # Application variables
-  APP_NAME: tradutor-core
+  APP_NAME: tradcore
   KUBE_NAMESPACE: vlibras
   APP_URL_DTH: "tradutor-coredth.vlibras.gov.br"
   APP_URL_HOM: "tradutor-corehom.vlibras.gov.br"
