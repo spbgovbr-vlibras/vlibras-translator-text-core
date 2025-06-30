@@ -1,6 +1,6 @@
 FROM public.ecr.aws/docker/library/ubuntu:20.04 AS build
 
-ARG vlibras_translator_version=1.1.0rc1
+ARG vlibras_translator_version=1.1.1
 ARG vlibras_number_version=1.0.0
 ARG torch_version=2.6.0
 
