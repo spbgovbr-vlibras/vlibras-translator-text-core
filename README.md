@@ -112,6 +112,35 @@ python -m pip install --upgrade --index-url https://test.pypi.org/simple/ --extr
 ```
 
 
+## Development
+
+To run the worker locally, the steps are as follows:
+- Install a modern version of Python (personally, I have developed and tested the server on 3.10);
+- Optionally, create and activate a virtualenv:
+  ```bash
+  $ virtualenv venv && source venv/bin/activate
+
+  # or, if you don't want to install `virtualenv`:
+  $ python3 -m venv venv && source venv/bin/activate
+  ```
+- Install the required dependencies:
+  ```bash
+  $ pip install -r requirements.txt
+  ```
+- Run the worker in debug mode by calling the main source file:
+  ```bash
+  $ python src/worker.py
+  ```
+
+During development, it is also useful to run code-style and linting tools before commiting and/or creating a merge request:
+- Install dev dependencies:
+  ```bash
+  $ pip install -r requirements-dev.txt
+  ```
+- Enable linter and formatting before commiting:
+  ```bash
+  $ pre-commit install
+  ```
 
 ### Installing
 
@@ -184,6 +213,7 @@ sudo docker-compose up
 
 * Jonathan Brilhante - <jonathan.brilhante@lavid.ufpb.br>
 * Wesnydy Ribeiro - <wesnydy@lavid.ufpb.br>
+* Diego Silva - <diego.silva@lavid.ufpb.br>
 
 ## License
 
