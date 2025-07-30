@@ -79,6 +79,9 @@ RUN pip install --no-cache-dir --upgrade nltk Jinja2 \
     && pip uninstall -y py \
     && pip install --no-cache-dir --force-reinstall numpy==1.26.0
 
+RUN rm -rf /usr/local/lib/python3.10/site-packages/setuptools-65.5.0.dist-info
+RUN rm -rf /usr/local/lib/python3.10/site-packages/pip-23.0.1.dist-info
+
 # Tentativa opcional de baixar modelo
 RUN vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || \
     echo "Download do modelo falhou durante o build - será baixado na primeira execução"
