@@ -53,7 +53,7 @@ tradcore:
     AMQP_PREFETCH_COUNT: 1
     LOGGER_CONFIG_FILE: "/dist/config/logging-dev.ini"
     HEALTHCHECK_PORT: '8080'
-    VLIBRAS_DL_MODEL_TAG: "v1.1.2"
+    VLIBRAS_DL_MODEL_TAG: "v1.1.1"
     VLIBRAS_FORCE_MODEL_DOWNLOAD: 'true'
 
 
