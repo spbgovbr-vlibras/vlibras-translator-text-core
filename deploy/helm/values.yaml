@@ -39,7 +39,7 @@ global:
   
 
 tradcore:
-  replicaCount: 4
+  replicaCount: 6
   image:
     repository: "registry.sisp.gov.br/vlibras/vlibras-translator-service/vlibras-translator-text-core"
     tag: ""
@@ -47,7 +47,7 @@ tradcore:
   pullPolicy: Always
 
   appConfig:
-    LOGGER_FORMAT: 'dev' #dev or production
+    LOGGER_FORMAT: 'production' #dev or production
     PORT: '80'
     AMQP_PROTOCOL: 'amqp'
     AMQP_PREFETCH_COUNT: 1
