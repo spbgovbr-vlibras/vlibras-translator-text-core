@@ -1,5 +1,5 @@
 variables:
-  APP_NAME: trad-core
+  APP_NAME: tradcore
   APP_URL: tradcore-dth.vlibras.lavid.ufpb.br
 
 include:
