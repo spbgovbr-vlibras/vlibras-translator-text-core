@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "tradcore-name.fullname" . }}
+  labels:
+    {{ include "tradcore.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.tradcore.service.type }}
+  ports:
+  - port: {{ .Values.tradcore.service.port }}
+    name: http
+    targetPort: {{ .Values.tradcore.service.port }}
+    protocol: TCP
+  selector:
+    {{ include "tradcore.labels" . | indent 4 }}

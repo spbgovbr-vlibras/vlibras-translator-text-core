@@ -1,0 +1,7 @@
+variables:
+  ARGO_APP: tradcore
+  ARGO_ENV: vlibras
+include:
+  - project: 'sgd/pipeline-template'
+    ref: main
+    file: '/Default-App-Pipeline-VLibras.gitlab-ci.yml'

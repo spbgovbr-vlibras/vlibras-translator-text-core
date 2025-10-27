@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradcore.fullname" . }}
+  labels:
+    {{ include "tradcore.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.tradcore.replicaCount }}
+  selector:
+    matchLabels:
+      {{ include "tradcore.labels" . | indent 8 }}
+  template:
+    metadata:
+      annotations:
+        date: {{ now | quote }}
+        {{- with .Values.tradcore.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{ include "tradcore.labels" . | indent 12 }}
+        {{- with .Values.tradcore.labels }}
+        {{- toYaml . | nindent 12 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.tradcore.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ template "tradcore.fullname" . }}
+          securityContext:
+            {{- toYaml .Values.tradcore.securityContext | nindent 12 }}
+          image: "{{ .Values.tradcore.image.repository }}:{{ .Values.tradcore.image.tag }}"
+          imagePullPolicy: {{ .Values.tradcore.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "tradcore.fullname" . }}-app-config
+            - secretRef:
+                name: {{ if .Values.tradcore.secrets.existingSecret }}{{ .Values.tradcore.secrets.existingSecret }}{{- else }}{{ include "tradcore.fullname" . }}-app-secret{{- end }}
+            - secretRef:
+                name: {{ include "tradcoreGetRedisSecretName" . }}
+            - secretRef:
+                name: {{ include "tradcoreGetAmqpSecretName" . }}                
+          tty: true
+          ports:
+            - name: http
+              containerPort: {{ .Values.tradcore.service.port }}
+              protocol: TCP
+          {{- if .Values.tradcore.startupProbe.enabled }}
+          startupProbe: {{- omit .Values.tradcore.startupProbe "enabled" | toYaml | nindent 12 }}
+            tcpSocket:
+              port: {{ .Values.tradcore.appConfig.HEALTHCHECK_PORT }}
+          {{- end }}
+          {{- if .Values.tradcore.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.tradcore.livenessProbe "enabled" | toYaml | nindent 12 }}
+            tcpSocket:
+              port: {{ .Values.tradcore.appConfig.HEALTHCHECK_PORT }}
+          {{- end }}
+          {{- if .Values.tradcore.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.tradcore.readinessProbe "enabled" | toYaml | nindent 12 }}
+            tcpSocket:
+              port: {{ .Values.tradcore.appConfig.HEALTHCHECK_PORT }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.tradcore.resources | nindent 12 }}
+      {{- with .Values.tradcore.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.tradcore.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.tradcore.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+
