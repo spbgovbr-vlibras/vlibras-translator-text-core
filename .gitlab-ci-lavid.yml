@@ -1,3 +1,8 @@
+workflow:
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "dev"'
+    - when: never
+
 variables:
   APP_NAME: tradcore
   APP_URL: tradcore-dth.vlibras.lavid.ufpb.br
@@ -7,8 +12,6 @@ include:
   - project: 'vlibras2019/DevOps'
     ref: main
     file: '/Default-App-Pipeline-VLibras.gitlab-ci.yml'
-    rules:
-      - if: '$CI_COMMIT_REF_NAME == "dev"'
 
 # Sobrescrevendo o bloco "artifacts" do job container-build herdado
 container-build:
