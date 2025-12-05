@@ -6,6 +6,9 @@ workflow:
 variables:
   APP_NAME: tradcore
   APP_URL: tradcore-dth.vlibras.lavid.ufpb.br
+  RELEASE_NAME: vlibras-translator-text-core
+
+
 
 include:
   # 🔹 Template padrão para branches dev
