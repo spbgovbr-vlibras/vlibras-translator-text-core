@@ -36,7 +36,7 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Instalar pip, wheel, setuptools
-RUN pip install --no-cache-dir --upgrade pip==24 wheel setuptools==80.9.0
+RUN pip install --no-cache-dir --ignore-installed --upgrade pip==24 wheel setuptools==80.9.0
 
 # Instalar dependências do projeto
 WORKDIR /opt
