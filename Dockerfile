@@ -35,6 +35,9 @@ RUN cd /tmp \
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+# Limpar distutils_hack corrompido antes de qualquer upgrade
+RUN rm -rf /opt/venv/lib/python3.10/site-packages/_distutils_hack
+
 # Instalar pip, wheel, setuptools
 RUN pip install --no-cache-dir --ignore-installed --upgrade pip==24 wheel setuptools==80.9.0
 
