@@ -7,6 +7,9 @@ ARG torch_version=2.6.0
 # Atualizar sistema e instalar dependências base
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends build-essential
+RUN apt-get install -y --no-install-recommends g++-10 \
+    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100 \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100
 RUN apt-get install -y --no-install-recommends hunspell git wget curl ca-certificates
 RUN apt-get install -y --no-install-recommends libssl-dev zlib1g-dev libbz2-dev
 RUN apt-get install -y --no-install-recommends libreadline-dev libsqlite3-dev libffi-dev
