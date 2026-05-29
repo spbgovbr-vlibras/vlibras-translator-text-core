@@ -14,9 +14,9 @@ WORKDIR /dist
 
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends ca-certificates git git-lfs \
+    && apt-get install -y --no-install-recommends ca-certificates git git-lfs python3 python3-venv \
     && git lfs install --system \
-    && python -m venv /opt/venv \
+    && python3 -m venv /opt/venv \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./
@@ -37,8 +37,8 @@ RUN pip install --upgrade "setuptools>=69" wheel \
         --index-url https://test.pypi.org/simple/ \
         --extra-index-url https://pypi.org/simple \
         "vlibras-translator[neural]==${vlibras_translator_version}" \
-    && python -m spacy download pt_core_news_md \
-    && python -c "import os, pathlib, urllib.request, zipfile; root = pathlib.Path(os.environ['NLTK_DATA']) / 'corpora'; root.mkdir(parents=True, exist_ok=True); archive = root / 'wordnet.zip'; urllib.request.urlretrieve(os.environ['NLTK_WORDNET_URL'], archive); zipfile.ZipFile(archive).extractall(root)" \
+    && python3 -m spacy download pt_core_news_md \
+    && python3 -c "import os, pathlib, urllib.request, zipfile; root = pathlib.Path(os.environ['NLTK_DATA']) / 'corpora'; root.mkdir(parents=True, exist_ok=True); archive = root / 'wordnet.zip'; urllib.request.urlretrieve(os.environ['NLTK_WORDNET_URL'], archive); zipfile.ZipFile(archive).extractall(root)" \
     && (vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || true)
 
 FROM public.ecr.aws/docker/library/ubuntu:24.04
