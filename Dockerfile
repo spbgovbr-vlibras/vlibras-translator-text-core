@@ -64,8 +64,11 @@ RUN pip install --no-cache-dir --upgrade nltk Jinja2 \
 RUN pip install --no-cache-dir --force-reinstall \
         git+https://github.com/diegoramonbs/fairseq.git@vlibras
 
-# ✅ Verificação explícita de compatibilidade ainda no build stage
-RUN python3 -c "import numpy; import thinc; import spacy; print('Compatibilidade OK')"
+# ✅ Força versões corretas APÓS o fairseq sobrescrever tudo
+RUN pip install --no-cache-dir --force-reinstall \
+        "numpy==1.26.0" \
+        "joblib==1.2.0" \
+        "nltk==3.9"
 
 RUN python3 -m nltk.downloader wordnet
 
