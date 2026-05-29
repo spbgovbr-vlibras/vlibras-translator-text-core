@@ -86,7 +86,7 @@ RUN pip install --no-cache-dir --force-reinstall \
 RUN pip install --no-cache-dir --force-reinstall \
     numpy==1.26.0 \
     joblib==1.2.0 \
-    nltk==3.9
+    nltk==3.9.3
 
 # ------------------------------
 # NLTK DATA (SEM downloader)
