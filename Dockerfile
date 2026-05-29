@@ -25,7 +25,7 @@ RUN pip install --upgrade "setuptools>=69" wheel \
     && pip install \
         "joblib==1.2.0" \
         "langdetect==1.0.9" \
-        "nltk==3.9" \
+        "nltk==3.9.3" \
         "numpy==1.26.0" \
         "rich==13.5.2" \
         "spacy==3.7.5" \
