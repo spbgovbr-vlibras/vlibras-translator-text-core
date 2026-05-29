@@ -52,7 +52,7 @@ WORKDIR /dist
 
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends git git-lfs python3 \
+    && apt-get install -y --no-install-recommends ca-certificates git git-lfs python3 \
     && git lfs install --system \
     && rm -rf /var/lib/apt/lists/*
 
