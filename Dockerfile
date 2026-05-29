@@ -1,7 +1,7 @@
 # ==============================
 # STAGE: BUILD
 # ==============================
-FROM public.ecr.aws/docker/library/ubuntu:20.04 AS build
+FROM public.ecr.aws/docker/library/ubuntu:24.04 AS build
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG vlibras_translator_version=1.2.0rc1
@@ -102,7 +102,7 @@ RUN mkdir -p $NLTK_DATA/corpora \
 # ==============================
 # STAGE: RUNTIME
 # ==============================
-FROM public.ecr.aws/docker/library/ubuntu:20.04
+FROM public.ecr.aws/docker/library/ubuntu:24.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
