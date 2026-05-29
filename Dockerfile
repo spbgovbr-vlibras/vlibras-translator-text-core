@@ -94,7 +94,7 @@ RUN pip install --no-cache-dir --force-reinstall \
 ENV NLTK_DATA=/usr/local/share/nltk_data
 
 RUN mkdir -p $NLTK_DATA/corpora \
-    && wget -q https://github.com/nltk/nltk_data/raw/gh-pages/packages/corpora/wordnet.zip \
+    && wget -q https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/wordnet.zip \
     -O /tmp/wordnet.zip \
     && unzip /tmp/wordnet.zip -d $NLTK_DATA/corpora \
     && rm /tmp/wordnet.zip
