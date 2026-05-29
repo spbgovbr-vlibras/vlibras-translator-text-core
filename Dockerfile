@@ -1,6 +1,6 @@
-FROM python:3.12-slim AS build
+FROM public.ecr.aws/docker/library/python:3.12-slim AS build
 
-ARG vlibras_translator_version=1.3.0b3
+ARG vlibras_translator_version=1.3.0b4
 ARG torch_version=2.8.0
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -13,6 +13,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /dist
 
 RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends ca-certificates git git-lfs \
     && git lfs install --system \
     && python -m venv /opt/venv \
@@ -25,7 +26,7 @@ RUN pip install --upgrade "setuptools>=69" wheel \
     && pip install \
         "joblib==1.2.0" \
         "langdetect==1.0.9" \
-        "nltk==3.9.3" \
+        "nltk==3.9.4" \
         "numpy==1.26.0" \
         "rich==13.5.2" \
         "spacy==3.7.5" \
@@ -40,7 +41,7 @@ RUN pip install --upgrade "setuptools>=69" wheel \
     && python -c "import os, pathlib, urllib.request, zipfile; root = pathlib.Path(os.environ['NLTK_DATA']) / 'corpora'; root.mkdir(parents=True, exist_ok=True); archive = root / 'wordnet.zip'; urllib.request.urlretrieve(os.environ['NLTK_WORDNET_URL'], archive); zipfile.ZipFile(archive).extractall(root)" \
     && (vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || true)
 
-FROM python:3.12-slim
+FROM public.ecr.aws/docker/library/python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -49,6 +50,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH=/opt/venv/bin:$PATH
 
 WORKDIR /dist
+
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /opt/venv /opt/venv
 COPY --from=build /usr/local/share/nltk_data /usr/local/share/nltk_data
