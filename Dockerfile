@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/python:3.12-slim AS build
+FROM public.ecr.aws/docker/library/ubuntu:24.04 AS build
 
 ARG vlibras_translator_version=1.3.0b4
 ARG torch_version=2.8.0
@@ -41,7 +41,7 @@ RUN pip install --upgrade "setuptools>=69" wheel \
     && python -c "import os, pathlib, urllib.request, zipfile; root = pathlib.Path(os.environ['NLTK_DATA']) / 'corpora'; root.mkdir(parents=True, exist_ok=True); archive = root / 'wordnet.zip'; urllib.request.urlretrieve(os.environ['NLTK_WORDNET_URL'], archive); zipfile.ZipFile(archive).extractall(root)" \
     && (vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || true)
 
-FROM public.ecr.aws/docker/library/python:3.12-slim
+FROM public.ecr.aws/docker/library/ubuntu:24.04
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
