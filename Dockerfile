@@ -53,7 +53,8 @@ WORKDIR /dist
 
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends python3 \
+    && apt-get install -y --no-install-recommends git git-lfs python3 \
+    && git lfs install --system \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /opt/venv /opt/venv
