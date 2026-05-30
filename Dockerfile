@@ -38,8 +38,7 @@ RUN pip install --upgrade "setuptools>=69" wheel \
         --extra-index-url https://pypi.org/simple \
         "vlibras-translator[neural]==${vlibras_translator_version}" \
     && python3 -m spacy download pt_core_news_md \
-    && python3 -c "import os, pathlib, urllib.request, zipfile; root = pathlib.Path(os.environ['NLTK_DATA']) / 'corpora'; root.mkdir(parents=True, exist_ok=True); archive = root / 'wordnet.zip'; urllib.request.urlretrieve(os.environ['NLTK_WORDNET_URL'], archive); zipfile.ZipFile(archive).extractall(root)" \
-    && (vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || true)
+    && python3 -c "import os, pathlib, urllib.request, zipfile; root = pathlib.Path(os.environ['NLTK_DATA']) / 'corpora'; root.mkdir(parents=True, exist_ok=True); archive = root / 'wordnet.zip'; urllib.request.urlretrieve(os.environ['NLTK_WORDNET_URL'], archive); zipfile.ZipFile(archive).extractall(root)"
 
 FROM public.ecr.aws/docker/library/ubuntu:24.04
 
@@ -53,10 +52,14 @@ WORKDIR /dist
 
 RUN apt-get update \
     && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends ca-certificates git git-lfs python3 \
+    && git lfs install --system \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /opt/venv /opt/venv
 COPY --from=build /usr/local/share/nltk_data /usr/local/share/nltk_data
 COPY ./src /dist/
+
+RUN vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || true
 
 CMD ["python", "worker.py"]
