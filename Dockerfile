@@ -1,6 +1,6 @@
 FROM public.ecr.aws/docker/library/ubuntu:24.04 AS build
 
-ARG vlibras_translator_version=1.3.0b4
+ARG vlibras_translator_version=1.3.0b5
 ARG torch_version=2.8.0
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
