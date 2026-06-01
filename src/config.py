@@ -2,7 +2,8 @@ import os
 from enum import Enum
 from typing import Any
 
-from pydantic import AmqpDsn, BaseSettings, validator
+from pydantic import AmqpDsn, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ModeEnum(str, Enum):
@@ -13,6 +14,11 @@ class ModeEnum(str, Enum):
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        case_sensitive=True,
+        env_file=os.path.expanduser(".env"),
+    )
+
     MODE: ModeEnum = ModeEnum.DEVELOPMENT
 
     ENABLE_DL_TRANSLATION: bool = True
@@ -25,25 +31,29 @@ class Settings(BaseSettings):
     AMQP_PORT: str | int
     AMQP_PREFETCH_COUNT: int = 1
     AMQP_HEART_BEAT: int = 60
-    AMQP_URI: AmqpDsn | None
+    AMQP_URI: AmqpDsn | None = None
 
-    @validator("AMQP_URI", pre=True)
-    def assemble_rabbit_connection(
-        cls, v: str | None, values: dict[str, Any]
-    ) -> Any:
-        if isinstance(v, str):
-            return v
-        return AmqpDsn.build(
-            scheme='amqp',
+    @model_validator(mode="before")
+    @classmethod
+    def assemble_rabbit_connection(cls, values: Any) -> Any:
+        if not isinstance(values, dict):
+            return values
+        if isinstance(values.get("AMQP_URI"), str):
+            return values
+        if not all(
+            values.get(field)
+            for field in ("AMQP_HOST", "AMQP_USER", "AMQP_PASS", "AMQP_PORT")
+        ):
+            return values
+
+        values["AMQP_URI"] = AmqpDsn.build(
+            scheme="amqp",
             host=values.get("AMQP_HOST"),
             password=values.get("AMQP_PASS"),
-            user=values.get("AMQP_USER"),
-            port=values.get("AMQP_PORT"),
+            username=values.get("AMQP_USER"),
+            port=int(values.get("AMQP_PORT")) if values.get("AMQP_PORT") else None,
         )
-
-    class Config:
-        case_sensitive = True
-        env_file = os.path.expanduser(".env")
+        return values
 
 
 settings = Settings()
