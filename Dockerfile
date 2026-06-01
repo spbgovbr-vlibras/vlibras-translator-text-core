@@ -1,6 +1,6 @@
 FROM public.ecr.aws/docker/library/ubuntu:24.04 AS build
 
-ARG vlibras_translator_version=1.3.0b4
+ARG vlibras_translator_version=1.3.0b5
 ARG torch_version=2.8.0
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -38,7 +38,8 @@ RUN pip install --upgrade "setuptools>=69" wheel \
         --extra-index-url https://pypi.org/simple \
         "vlibras-translator[neural]==${vlibras_translator_version}" \
     && python3 -m spacy download pt_core_news_md \
-    && python3 -c "import os, pathlib, urllib.request, zipfile; root = pathlib.Path(os.environ['NLTK_DATA']) / 'corpora'; root.mkdir(parents=True, exist_ok=True); archive = root / 'wordnet.zip'; urllib.request.urlretrieve(os.environ['NLTK_WORDNET_URL'], archive); zipfile.ZipFile(archive).extractall(root)"
+    && python3 -c "import os, pathlib, urllib.request, zipfile; root = pathlib.Path(os.environ['NLTK_DATA']) / 'corpora'; root.mkdir(parents=True, exist_ok=True); archive = root / 'wordnet.zip'; urllib.request.urlretrieve(os.environ['NLTK_WORDNET_URL'], archive); zipfile.ZipFile(archive).extractall(root)" \
+    && python3 -c "from vlibras_translator import translate; translator = translate.Translator(); translator.translate('Essa tradução irá forçar o download de arquivos externos adicionais.', neural=True)"
 
 FROM public.ecr.aws/docker/library/ubuntu:24.04
 
@@ -59,7 +60,5 @@ RUN apt-get update \
 COPY --from=build /opt/venv /opt/venv
 COPY --from=build /usr/local/share/nltk_data /usr/local/share/nltk_data
 COPY ./src /dist/
-
-RUN vlibras-translator -n "Essa tradução irá forçar o download de arquivos externos adicionais." || true
 
 CMD ["python", "worker.py"]

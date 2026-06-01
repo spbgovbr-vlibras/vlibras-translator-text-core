@@ -1,4 +1,6 @@
 import logging
+import random
+import time
 from typing import Any, Callable
 
 import pika
@@ -6,6 +8,7 @@ from pika.exceptions import (
     AMQPConnectionError,
     AMQPError,
     ConnectionClosedByBroker,
+    StreamLostError,
     ConnectionWrongStateError,
 )
 from retry import retry
@@ -47,6 +50,7 @@ def initialise_pika_connection(
         port,
         connection_attempts,
         retry_delay_in_seconds,
+        heartbeat,
     )
     return pika.BlockingConnection(parameters)
 
@@ -148,6 +152,10 @@ class QueueWrapper:
 
         self._connection = None
 
+    def _reset_connection(self) -> None:
+        self.close_connection()
+        self._connection = None
+
     def _configure_blocking_connection(self):
         """Initialize RabbitMQ connection"""
 
@@ -161,10 +169,11 @@ class QueueWrapper:
             retry_delay_in_seconds=self._retry_delay_in_seconds,
             heartbeat=self._heartbeat,
         )
+        logger.info("AMQP connection established with host '%s:%s'.", self._host, self._port)
 
     def close_connection(self):
         logger.debug("Closing blocking connection.")
-        if self._connection is not None:
+        if self._connection is not None and not self._connection.is_closed:
             close_pika_connection(self._connection)
 
 
@@ -172,23 +181,62 @@ class QueueConsumer(QueueWrapper):
     def __init__(self):
         super().__init__()
         self._channel = None
+        self._should_stop = False
+
+    def _reset_channel(self) -> None:
+        if self._channel is not None and self._channel.is_open:
+            close_pika_channel(self._channel)
+        self._channel = None
 
     def _configure_blocking_channel(self, queue: str) -> None:
         self._channel = self._connection.channel()
         self._channel.queue_declare(queue, durable=False)
         self._channel.basic_qos(prefetch_count=self._prefetch)
 
-    @retry(AMQPConnectionError, delay=1, max_delay=5, jitter=1)
     def consume_from_queue(self, queue: str, callback: Callable) -> None:
-        if self._connection is not None:
-            if self._connection.is_open:
-                close_pika_connection(self._connection)
+        self._should_stop = False
+        retry_delay = 1.0
 
-        self._configure_blocking_connection()
-        self._configure_blocking_channel(queue)
+        while not self._should_stop:
+            try:
+                logger.debug("Starting AMQP consumer for queue '%s'.", queue)
+                self._reset_channel()
+                self._reset_connection()
 
-        self._channel.basic_consume(queue, on_message_callback=callback)
-        self._channel.start_consuming()
+                self._configure_blocking_connection()
+                self._configure_blocking_channel(queue)
+                logger.info("AMQP consumer reconnected and ready for queue '%s'.", queue)
+                retry_delay = 1.0
+
+                self._channel.basic_consume(queue, on_message_callback=callback)
+                self._channel.start_consuming()
+            except (
+                AMQPConnectionError,
+                ConnectionClosedByBroker,
+                ConnectionWrongStateError,
+                StreamLostError,
+            ) as error:
+                if self._should_stop:
+                    logger.info("Consumer stop requested. Closing AMQP consumer loop.")
+                    break
+                logger.warning("AMQP consumer connection lost. Reconnecting: %s", error)
+                sleep_for = retry_delay + random.uniform(0, 1)
+                logger.info("Retrying AMQP consumer connection in %.2f seconds.", sleep_for)
+                time.sleep(sleep_for)
+                retry_delay = min(retry_delay * 2, 8.0)
+            finally:
+                self._reset_channel()
+                self._reset_connection()
+
+    def stop_consuming(self) -> None:
+        self._should_stop = True
+
+        if self._connection is not None and self._connection.is_open:
+            self._connection.add_callback_threadsafe(self._stop_consuming_callback)
+
+    def _stop_consuming_callback(self) -> None:
+        if self._channel is not None and self._channel.is_open:
+            self._channel.stop_consuming()
 
 
 class QueuePublisher(QueueWrapper):
@@ -201,7 +249,19 @@ class QueuePublisher(QueueWrapper):
             logger.debug("Opening a new publisher channel.")
             self._channel = self._connection.channel()
 
-    @retry(AMQPConnectionError, tries=3, delay=1)
+    def _reset_channel(self) -> None:
+        if self._channel is not None and self._channel.is_open:
+            close_pika_channel(self._channel)
+        self._channel = None
+
+    @retry(
+        (AMQPConnectionError, StreamLostError, ConnectionWrongStateError),
+        tries=5,
+        delay=1,
+        max_delay=8,
+        backoff=2,
+        jitter=(0, 1),
+    )
     def publish_to_queue(self, route: str, payload: dict[str, Any], id: str) -> None:
         if self._connection is None or self._connection.is_closed:
             # Try to reset connection
@@ -213,14 +273,19 @@ class QueuePublisher(QueueWrapper):
         try:
             self._connection.process_data_events(0)
         except ConnectionClosedByBroker as error:
-            logger.debug(
-                f"Connection was closed by broker: {error}. Retrying...")
+            logger.warning(
+                "Publisher connection was closed by broker. Reconnecting: %s",
+                error,
+            )
+            self._reset_channel()
             self._configure_blocking_connection()
-        except AMQPConnectionError as error:
-            logger.debug(f"Connection was closed: {error}. Retrying...")
+        except (AMQPConnectionError, StreamLostError, ConnectionWrongStateError) as error:
+            logger.warning("Publisher connection was lost. Reconnecting: %s", error)
+            self._reset_channel()
             self._configure_blocking_connection()
 
         self._configure_blocking_channel()
+        logger.info("AMQP publisher connection ready for route '%s'.", route)
 
         logger.debug(f"Publishing message in the route '{route}'.")
         try:
@@ -231,5 +296,14 @@ class QueuePublisher(QueueWrapper):
                 properties=pika.BasicProperties(correlation_id=id)
             )
 
-        except AssertionError:
+        except (
+            AMQPConnectionError,
+            AMQPError,
+            AssertionError,
+            StreamLostError,
+            ConnectionWrongStateError,
+        ):
+            self._reset_channel()
+            self._reset_connection()
             logger.error("Failed to publish message.")
+            raise

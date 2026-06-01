@@ -2,6 +2,7 @@ import json
 import logging
 import threading
 
+from pika.exceptions import AMQPError, ConnectionWrongStateError
 from vlibras_translator import translate
 
 from config import settings
@@ -50,9 +51,17 @@ class Worker:
         self.threads = []
 
     def ack_message(self, channel, delivery_tag):
-        self.consumer._connection.add_callback_threadsafe(
-            lambda: channel.basic_ack(delivery_tag),
-        )
+        connection = self.consumer._connection
+        if connection is None or connection.is_closed or not channel.is_open:
+            logger.warning("Skipping ACK because AMQP connection/channel is closed.")
+            return
+
+        try:
+            connection.add_callback_threadsafe(
+                lambda: channel.basic_ack(delivery_tag),
+            )
+        except (AMQPError, ConnectionWrongStateError):
+            logger.warning("Failed to ACK message because AMQP connection was lost.")
 
     def reply_message(self, route, message, id):
         logger.info("Sending response to request.")
@@ -131,11 +140,9 @@ class Worker:
         for thread in self.threads:
             thread.join()
 
-        self.consumer._connection.process_data_events()
-        self.consumer.close_connection()
-
     def exit_gracefully(self, signum, frame):
         """Stop consuming queue but finish current messages."""
+        logger.info("Received signal %s. Stopping consumer loop.", signum)
         self.consumer.stop_consuming()
 
     def stop(self):
