@@ -1,6 +1,7 @@
 variables:
   ARGO_APP: tradcore
   ARGO_ENV: vlibras
+  DOCKER_BUILDKIT: "0"
 include:
   - project: 'sgd/pipeline-template'
     ref: main
