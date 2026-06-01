@@ -39,7 +39,7 @@ global:
   
 
 tradcore:
-  replicaCount: 6
+  replicaCount: 1
   image:
     repository: "registry.sisp.gov.br/vlibras/vlibras-translator-service/vlibras-translator-text-core"
     tag: ""
