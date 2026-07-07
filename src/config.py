@@ -22,8 +22,16 @@ class Settings(BaseSettings):
     MODE: ModeEnum = ModeEnum.DEVELOPMENT
 
     ENABLE_DL_TRANSLATION: bool = True
+    ENABLE_AGENT_GLOSS_REFINEMENT: bool = False
     HEALTHCHECK_PORT: int
     TRANSLATOR_QUEUE: str
+    WORKER_CAPABILITIES_QUEUE: str
+    GLOSS_REFINEMENT_QUEUE: str | None = None
+
+    AGENT_PROVIDER: str | None = None
+    AGENT_API_URL: str | None = None
+    AGENT_API_KEY: str | None = None
+    AGENT_MODEL: str | None = None
 
     AMQP_HOST: str
     AMQP_USER: str
@@ -54,6 +62,37 @@ class Settings(BaseSettings):
             port=int(values.get("AMQP_PORT")) if values.get("AMQP_PORT") else None,
         )
         return values
+
+    @model_validator(mode="after")
+    def validate_agent_gloss_refinement_settings(self) -> "Settings":
+        if not self.ENABLE_AGENT_GLOSS_REFINEMENT:
+            return self
+
+        if not self.GLOSS_REFINEMENT_QUEUE:
+            raise ValueError(
+                "GLOSS_REFINEMENT_QUEUE is required when "
+                "ENABLE_AGENT_GLOSS_REFINEMENT is enabled."
+            )
+
+        if self.AGENT_PROVIDER not in {"openai", "ollama"}:
+            raise ValueError(
+                "AGENT_PROVIDER must be either 'openai' or 'ollama' when "
+                "ENABLE_AGENT_GLOSS_REFINEMENT is enabled."
+            )
+
+        if not self.AGENT_API_URL:
+            raise ValueError(
+                "AGENT_API_URL is required when "
+                "ENABLE_AGENT_GLOSS_REFINEMENT is enabled."
+            )
+
+        if not self.AGENT_API_KEY:
+            raise ValueError(
+                "AGENT_API_KEY is required when "
+                "ENABLE_AGENT_GLOSS_REFINEMENT is enabled."
+            )
+
+        return self
 
 
 settings = Settings()

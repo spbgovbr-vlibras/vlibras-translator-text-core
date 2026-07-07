@@ -5,7 +5,6 @@ import threading
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-
 class HealthcheckHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):

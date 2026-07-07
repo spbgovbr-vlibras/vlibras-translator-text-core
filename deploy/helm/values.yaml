@@ -55,6 +55,11 @@ tradcore:
     HEALTHCHECK_PORT: '8080'
     VLIBRAS_DL_MODEL_TAG: "v1.3.0"
     VLIBRAS_FORCE_MODEL_DOWNLOAD: 'true'
+    ENABLE_AGENT_GLOSS_REFINEMENT: 'false'
+    GLOSS_REFINEMENT_QUEUE: "refine.gloss"
+    AGENT_PROVIDER: "openai"
+    AGENT_API_URL: "https://api.openai.com/v1"
+    AGENT_MODEL: "gpt-4.1-mini"
 
 
   secrets:
@@ -65,8 +70,10 @@ tradcore:
     
     appSecret:
       ENABLE_DL_TRANSLATION : 'true'
+      AGENT_API_KEY: "changeme"
       GIT_SSL_NO_VERIFY: '1'
       TRANSLATOR_QUEUE: "translate.to_text4"
+      WORKER_CAPABILITIES_QUEUE: "worker.capabilities"
       VIDEOMAKER_QUEUE: "translate.to_video"
 
   service:
