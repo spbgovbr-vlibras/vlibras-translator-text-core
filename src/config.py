@@ -25,13 +25,13 @@ class Settings(BaseSettings):
     ENABLE_AGENT_GLOSS_REFINEMENT: bool = False
     HEALTHCHECK_PORT: int
     TRANSLATOR_QUEUE: str
-    WORKER_CAPABILITIES_QUEUE: str
     GLOSS_REFINEMENT_QUEUE: str | None = None
 
-    AGENT_PROVIDER: str | None = None
-    AGENT_API_URL: str | None = None
-    AGENT_API_KEY: str | None = None
-    AGENT_MODEL: str | None = None
+    LLM_PROVIDER: str = "openai"
+    LLM_MODEL: str | None = None
+    LLM_API_KEY: str | None = None
+    LLM_BASE_URL: str = "https://api.openai.com/v1"
+    REFINER_VERBOSE: bool = False
 
     AMQP_HOST: str
     AMQP_USER: str
@@ -74,22 +74,22 @@ class Settings(BaseSettings):
                 "ENABLE_AGENT_GLOSS_REFINEMENT is enabled."
             )
 
-        if self.AGENT_PROVIDER not in {"openai", "ollama"}:
+        if self.LLM_PROVIDER not in {"openai", "ollama"}:
             raise ValueError(
-                "AGENT_PROVIDER must be either 'openai' or 'ollama' when "
+                "LLM_PROVIDER must be 'openai' or 'ollama' when "
                 "ENABLE_AGENT_GLOSS_REFINEMENT is enabled."
             )
 
-        if not self.AGENT_API_URL:
+        if not self.LLM_MODEL:
             raise ValueError(
-                "AGENT_API_URL is required when "
+                "LLM_MODEL is required when "
                 "ENABLE_AGENT_GLOSS_REFINEMENT is enabled."
             )
 
-        if not self.AGENT_API_KEY:
+        if self.LLM_PROVIDER == "openai" and not self.LLM_API_KEY:
             raise ValueError(
-                "AGENT_API_KEY is required when "
-                "ENABLE_AGENT_GLOSS_REFINEMENT is enabled."
+                "LLM_API_KEY is required when "
+                "ENABLE_AGENT_GLOSS_REFINEMENT is enabled with LLM_PROVIDER='openai'."
             )
 
         return self

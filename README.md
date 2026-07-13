@@ -74,7 +74,7 @@ sudo apt-get install -y erlang-base \
 sudo apt-get install rabbitmq-server -y --fix-missing
 ```
 
-##### Python 3.10
+##### Python 3.12
 
 Can be installed using conda.
 Download and run the [miniconda installer](https://docs.conda.io/en/latest/miniconda.html#linux-installers):
@@ -89,9 +89,9 @@ conda init
 
 Relogin to finish the installation.
 
-Create a new environment with python 3.10:
+Create a new environment with python 3.12:
 ```sh
-conda create -n text-core python=3.10
+conda create -n text-core python=3.12
 ```
 
 Then, activate the environment:
@@ -115,7 +115,7 @@ python -m pip install --upgrade --index-url https://test.pypi.org/simple/ --extr
 ## Development
 
 To run the worker locally, the steps are as follows:
-- Install a modern version of Python (personally, I have developed and tested the server on 3.10);
+- Install a modern version of Python (personally, I have developed and tested the server on 3.12);
 - Optionally, create and activate a virtualenv:
   ```bash
   $ virtualenv venv && source venv/bin/activate
@@ -200,51 +200,20 @@ AMQP_USER: vlibras
 AMQP_PASS: vlibras
 AMQP_PREFETCH_COUNT: 1
 TRANSLATOR_QUEUE: "translate.to_text"
-WORKER_CAPABILITIES_QUEUE: "worker.capabilities"
 ENABLE_DL_TRANSLATION: "false"
 ENABLE_AGENT_GLOSS_REFINEMENT: "false"
 GLOSS_REFINEMENT_QUEUE: "refine.gloss"
-AGENT_PROVIDER: "openai"
-AGENT_API_URL: "https://api.openai.com/v1"
-AGENT_API_KEY: "changeme"
-AGENT_MODEL: "gpt-4.1-mini"
+LLM_PROVIDER: "openai"
+LLM_MODEL: "gpt-4o"
+LLM_API_KEY: "changeme"
+LLM_BASE_URL: "https://api.openai.com/v1"
+REFINER_VERBOSE: "false"
 ```
 
 Finally, deploy the project by running:
 
 ```sh
 sudo docker-compose up
-```
-
-### Gloss refinement queue
-
-When `ENABLE_AGENT_GLOSS_REFINEMENT` is enabled, the worker starts a second
-consumer for `GLOSS_REFINEMENT_QUEUE`.
-
-The worker also starts a capability consumer on `WORKER_CAPABILITIES_QUEUE`.
-Capability requests use the same AMQP request/reply pattern with `reply_to` and
-`correlation_id`.
-
-Current temporary behavior:
-
-- translation requests still use `TRANSLATOR_QUEUE` with payload
-  `{"text": "bom dia"}`;
-- capability requests use `WORKER_CAPABILITIES_QUEUE` with payload
-  `{}`;
-- gloss refinement requests use `GLOSS_REFINEMENT_QUEUE` with payload
-  `{"text": "bom dia", "gloss": "BOM DIA"}`;
-- the refinement response currently returns the same input `gloss` unchanged
-  until the agent package is integrated.
-
-```json
-{
-  "gloss_refinement": {
-    "enabled": true,
-    "mode": "stub",
-    "provider": "openai",
-    "queue": "refine.gloss"
-  }
-}
 ```
 
 ## Contributors

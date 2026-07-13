@@ -1,5 +1,7 @@
 import json
+import importlib.metadata
 import logging
+import re
 import threading
 from collections.abc import Callable
 from typing import Any
@@ -157,42 +159,81 @@ class TranslationWorker(BaseWorker):
 
 
 class GlossRefinementWorker(BaseWorker):
-    """Stub worker for future agent-based gloss refinement."""
+    """Worker backed by vlibras-refiner."""
+
+    DIRECTIONAL_VERB_PATTERN = re.compile(r"\b[1-3][SP]_[^\s]+_[1-3][SP]\b")
+    DISAMBIGUATED_VERB_PATTERN = re.compile(r"\b[^\s]+&[^\s]+\b")
 
     def __init__(self, refinement_queue: str):
-        self.version = "agent-refinement-stub"
+        from vlibras_refiner import LLMConfig, Refiner
+
+        self.translator = translate.Translator()
+        self.translate = lambda text: self.translator.translate(
+            text,
+            neural=settings.ENABLE_DL_TRANSLATION,
+        )
+        self.version = self._resolve_refiner_version()
+        self.refiner = Refiner(
+            llm_config=LLMConfig(
+                provider=settings.LLM_PROVIDER,
+                openai_api_key=settings.LLM_API_KEY,
+                openai_model=settings.LLM_MODEL,
+                openai_base_url=settings.LLM_BASE_URL,
+            ),
+            verbose=settings.REFINER_VERBOSE,
+        )
         super().__init__(
             worker_name="gloss refinement",
             queue_name=refinement_queue,
             handler=self.handle_payload,
         )
 
+    def _resolve_refiner_version(self) -> str:
+        try:
+            return importlib.metadata.version("vlibras-refiner")
+        except importlib.metadata.PackageNotFoundError:
+            return "0.2.3b2"
+
     def handle_payload(self, payload: dict[str, Any]) -> dict[str, Any]:
+        text = payload.get("text", "")
+        gloss = payload.get("gloss")
+        if not text:
+            raise ValueError("Gloss refinement payload requires a non-empty 'text' field.")
+
+        if not gloss:
+            gloss = self.translate(text)
+
+        if not self._should_refine_gloss(gloss):
+            return {
+                "translation": gloss,
+                "version": self.version,
+            }
+
+        result = self.refiner.refine(text, gloss=gloss)
+        translation = self._normalize_translation(result)
+
         return {
-            "translation": payload.get("gloss", ""),
+            "translation": translation,
             "version": self.version,
         }
 
-
-class CapabilitiesWorker(BaseWorker):
-    """Worker capability discovery over AMQP."""
-
-    def __init__(self, capabilities_queue: str):
-        super().__init__(
-            worker_name="capabilities",
-            queue_name=capabilities_queue,
-            handler=self.handle_payload,
+    def _should_refine_gloss(self, gloss: str) -> bool:
+        return bool(
+            self.DIRECTIONAL_VERB_PATTERN.search(gloss)
+            or self.DISAMBIGUATED_VERB_PATTERN.search(gloss)
         )
 
-    def handle_payload(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return {
-            "gloss_refinement": {
-                "enabled": settings.ENABLE_AGENT_GLOSS_REFINEMENT,
-                "mode": "stub" if settings.ENABLE_AGENT_GLOSS_REFINEMENT else "disabled",
-                "provider": settings.AGENT_PROVIDER,
-                "queue": settings.GLOSS_REFINEMENT_QUEUE,
-            },
-        }
+    def _normalize_translation(self, result: Any) -> str:
+        if isinstance(result, str):
+            return result
+
+        if isinstance(result, dict):
+            for key in ("translation", "refined_translation", "gloss", "result"):
+                value = result.get(key)
+                if isinstance(value, str):
+                    return value
+
+        return str(result)
 
 
 if __name__ == "__main__":
@@ -213,11 +254,6 @@ if __name__ == "__main__":
                 neural=settings.ENABLE_DL_TRANSLATION
             )
         )
-        workers.append(
-            CapabilitiesWorker(
-                capabilities_queue=settings.WORKER_CAPABILITIES_QUEUE,
-            )
-        )
 
         if settings.ENABLE_AGENT_GLOSS_REFINEMENT:
             workers.append(
@@ -226,9 +262,8 @@ if __name__ == "__main__":
                 )
             )
             logger.info(
-                "Agent gloss refinement worker enabled with provider '%s' and url '%s'",
-                settings.AGENT_PROVIDER,
-                settings.AGENT_API_URL,
+                "Agent gloss refinement worker enabled with provider '%s'",
+                settings.LLM_PROVIDER,
             )
         else:
             logger.info("Agent gloss refinement worker disabled")
