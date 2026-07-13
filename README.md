@@ -201,8 +201,8 @@ AMQP_PASS: vlibras
 AMQP_PREFETCH_COUNT: 1
 TRANSLATOR_QUEUE: "translate.to_text"
 ENABLE_DL_TRANSLATION: "false"
-ENABLE_AGENT_GLOSS_REFINEMENT: "false"
-GLOSS_REFINEMENT_QUEUE: "refine.gloss"
+ENABLE_REFINEMENT: "false"
+REFINEMENT_QUEUE: "refine.to_text"
 LLM_PROVIDER: "openai"
 LLM_MODEL: "gpt-4o"
 LLM_API_KEY: "changeme"

@@ -255,10 +255,10 @@ if __name__ == "__main__":
             )
         )
 
-        if settings.ENABLE_AGENT_GLOSS_REFINEMENT:
+        if settings.ENABLE_REFINEMENT:
             workers.append(
                 GlossRefinementWorker(
-                    refinement_queue=settings.GLOSS_REFINEMENT_QUEUE,
+                    refinement_queue=settings.REFINEMENT_QUEUE,
                 )
             )
             logger.info(
