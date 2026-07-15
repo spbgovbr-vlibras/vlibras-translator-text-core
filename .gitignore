@@ -89,6 +89,7 @@ celerybeat-schedule
 
 # Environments
 .env
+.env.docker-compose-dev
 .venv
 env/
 venv/

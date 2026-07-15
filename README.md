@@ -2,9 +2,9 @@
 
 VLibras Translation Service Core.
 
-![Version](https://img.shields.io/badge/version-v2.5.rc1-blue.svg)
+![Version](https://img.shields.io/badge/version-v2.5.0rc1-blue.svg)
 ![License](https://img.shields.io/badge/license-LGPLv3-blue.svg)
-![VLibras](https://img.shields.io/badge/vlibras%20suite-2024-green.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAUCAYAAAC9BQwsAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4wIHCiw3NwjjIgAAAQ9JREFUOMuNkjErhWEYhq/nOBmkDNLJaFGyyyYsZzIZKJwfcH6AhcFqtCvFDzD5CQaTFINSlJJBZHI6J5flU5/P937fube357m63+d+nqBEagNYA9pAExgABxHxktU3882hjqtd9d7/+lCPsvpDZNA+MAXsABNU6xHYQ912ON2qC2qQ/X+J4XQXEVe/jwawCzwNAZp/NCLiDVgHejXgKIkVdGpm/FKXU/BJDfytbpWBLfWzAjxVx1Kuxwno5k84Jex0IpyzdN46qfYSjq18bzMHzQHXudifgQtgBuhHxGvKbaPg0Klaan7GdqE2W39LOq8OCo6X6kgdeJ4IZKUKWq1Y+GHVjF3gveTIe8BiCvwBEZmRAXuH6mYAAAAASUVORK5CYII=)
+![VLibras](https://img.shields.io/badge/vlibras%20suite-2026-green.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAUCAYAAAC9BQwsAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4wIHCiw3NwjjIgAAAQ9JREFUOMuNkjErhWEYhq/nOBmkDNLJaFGyyyYsZzIZKJwfcH6AhcFqtCvFDzD5CQaTFINSlJJBZHI6J5flU5/P937fube357m63+d+nqBEagNYA9pAExgABxHxktU3882hjqtd9d7/+lCPsvpDZNA+MAXsABNU6xHYQ912ON2qC2qQ/X+J4XQXEVe/jwawCzwNAZp/NCLiDVgHejXgKIkVdGpm/FKXU/BJDfytbpWBLfWzAjxVx1Kuxwno5k84Jex0IpyzdN46qfYSjq18bzMHzQHXudifgQtgBuhHxGvKbaPg0Klaan7GdqE2W39LOq8OCo6X6kgdeJ4IZKUKWq1Y+GHVjF3gveTIe8BiCvwBEZmRAXuH6mYAAAAASUVORK5CYII=)
 
 ## Table of Contents
 
@@ -74,7 +74,7 @@ sudo apt-get install -y erlang-base \
 sudo apt-get install rabbitmq-server -y --fix-missing
 ```
 
-##### Python 3.10
+##### Python 3.12
 
 Can be installed using conda.
 Download and run the [miniconda installer](https://docs.conda.io/en/latest/miniconda.html#linux-installers):
@@ -89,9 +89,9 @@ conda init
 
 Relogin to finish the installation.
 
-Create a new environment with python 3.10:
+Create a new environment with python 3.12:
 ```sh
-conda create -n text-core python=3.10
+conda create -n text-core python=3.12
 ```
 
 Then, activate the environment:
@@ -115,7 +115,7 @@ python -m pip install --upgrade --index-url https://test.pypi.org/simple/ --extr
 ## Development
 
 To run the worker locally, the steps are as follows:
-- Install a modern version of Python (personally, I have developed and tested the server on 3.10);
+- Install a modern version of Python (personally, I have developed and tested the server on 3.12);
 - Optionally, create and activate a virtualenv:
   ```bash
   $ virtualenv venv && source venv/bin/activate
@@ -201,6 +201,13 @@ AMQP_PASS: vlibras
 AMQP_PREFETCH_COUNT: 1
 TRANSLATOR_QUEUE: "translate.to_text"
 ENABLE_DL_TRANSLATION: "false"
+ENABLE_REFINEMENT: "false"
+REFINEMENT_QUEUE: "refine.to_text"
+LLM_PROVIDER: "openai"
+LLM_MODEL: "gpt-4o"
+LLM_API_KEY: "changeme"
+LLM_BASE_URL: "https://api.openai.com/v1"
+REFINER_VERBOSE: "false"
 ```
 
 Finally, deploy the project by running:

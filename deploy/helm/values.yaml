@@ -56,7 +56,6 @@ tradcore:
     VLIBRAS_DL_MODEL_TAG: "v1.3.0"
     VLIBRAS_FORCE_MODEL_DOWNLOAD: 'true'
 
-
   secrets:
     # The existingSecret field is more like a boolean. 
     # if it's empty, Wikilibras Backend creates a secret based on Enviroment Variables Values
@@ -68,6 +67,8 @@ tradcore:
       GIT_SSL_NO_VERIFY: '1'
       TRANSLATOR_QUEUE: "translate.to_text4"
       VIDEOMAKER_QUEUE: "translate.to_video"
+      ENABLE_REFINEMENT: "false"
+      REFINEMENT_QUEUE: "refine.to_text"
 
   service:
     type: ClusterIP
