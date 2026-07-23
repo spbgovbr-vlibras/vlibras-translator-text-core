@@ -55,6 +55,12 @@ tradcore:
     HEALTHCHECK_PORT: '8080'
     VLIBRAS_DL_MODEL_TAG: "v1.3.0"
     VLIBRAS_FORCE_MODEL_DOWNLOAD: 'true'
+    ENABLE_DL_TRANSLATION : 'true'
+    GIT_SSL_NO_VERIFY: '1'
+    TRANSLATOR_QUEUE: "translate.to_text4"
+    VIDEOMAKER_QUEUE: "translate.to_video"
+    ENABLE_REFINEMENT: "false"
+    REFINEMENT_QUEUE: "refine.to_text"
 
   secrets:
     # The existingSecret field is more like a boolean. 
@@ -63,12 +69,8 @@ tradcore:
     existingSecret: "vlibras-tradutor-core-appsecret"
     
     appSecret:
-      ENABLE_DL_TRANSLATION : 'true'
-      GIT_SSL_NO_VERIFY: '1'
-      TRANSLATOR_QUEUE: "translate.to_text4"
-      VIDEOMAKER_QUEUE: "translate.to_video"
-      ENABLE_REFINEMENT: "false"
-      REFINEMENT_QUEUE: "refine.to_text"
+      ABC : 'abc'
+      
 
   service:
     type: ClusterIP
