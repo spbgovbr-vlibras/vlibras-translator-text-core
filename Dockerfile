@@ -1,6 +1,7 @@
 FROM public.ecr.aws/docker/library/ubuntu:24.04 AS build
 
-ARG vlibras_translator_version=1.3.0b4
+ARG vlibras_translator_version=1.3.1
+ARG vlibras_refiner_version=0.2.3b2
 ARG torch_version=2.8.0
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -23,6 +24,10 @@ COPY requirements.txt ./
 
 RUN pip install --upgrade "setuptools>=69" wheel \
     && pip install -r requirements.txt \
+    && pip install \
+        --index-url https://test.pypi.org/simple/ \
+        --extra-index-url https://pypi.org/simple \
+        "vlibras-refiner==${vlibras_refiner_version}" \
     && pip install \
         "joblib==1.2.0" \
         "langdetect==1.0.9" \

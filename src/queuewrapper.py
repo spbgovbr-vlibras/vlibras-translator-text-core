@@ -190,6 +190,15 @@ class QueueConsumer(QueueWrapper):
         self._channel.basic_consume(queue, on_message_callback=callback)
         self._channel.start_consuming()
 
+    def stop_consuming(self) -> None:
+        if self._connection is None or self._channel is None:
+            return
+
+        if not self._connection.is_open or not self._channel.is_open:
+            return
+
+        self._connection.add_callback_threadsafe(self._channel.stop_consuming)
+
 
 class QueuePublisher(QueueWrapper):
     def __init__(self):

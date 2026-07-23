@@ -22,8 +22,16 @@ class Settings(BaseSettings):
     MODE: ModeEnum = ModeEnum.DEVELOPMENT
 
     ENABLE_DL_TRANSLATION: bool = True
+    ENABLE_REFINEMENT: bool = False
     HEALTHCHECK_PORT: int
     TRANSLATOR_QUEUE: str
+    REFINEMENT_QUEUE: str | None = None
+
+    LLM_PROVIDER: str = "openai"
+    LLM_MODEL: str | None = None
+    LLM_API_KEY: str | None = None
+    LLM_BASE_URL: str = "https://api.openai.com/v1"
+    REFINER_VERBOSE: bool = False
 
     AMQP_HOST: str
     AMQP_USER: str
@@ -54,6 +62,37 @@ class Settings(BaseSettings):
             port=int(values.get("AMQP_PORT")) if values.get("AMQP_PORT") else None,
         )
         return values
+
+    @model_validator(mode="after")
+    def validate_agent_gloss_refinement_settings(self) -> "Settings":
+        if not self.ENABLE_REFINEMENT:
+            return self
+
+        if not self.REFINEMENT_QUEUE:
+            raise ValueError(
+                "REFINEMENT_QUEUE is required when "
+                "ENABLE_REFINEMENT is enabled."
+            )
+
+        if self.LLM_PROVIDER not in {"openai", "ollama"}:
+            raise ValueError(
+                "LLM_PROVIDER must be 'openai' or 'ollama' when "
+                "ENABLE_REFINEMENT is enabled."
+            )
+
+        if not self.LLM_MODEL:
+            raise ValueError(
+                "LLM_MODEL is required when "
+                "ENABLE_REFINEMENT is enabled."
+            )
+
+        if self.LLM_PROVIDER == "openai" and not self.LLM_API_KEY:
+            raise ValueError(
+                "LLM_API_KEY is required when "
+                "ENABLE_REFINEMENT is enabled with LLM_PROVIDER='openai'."
+            )
+
+        return self
 
 
 settings = Settings()
