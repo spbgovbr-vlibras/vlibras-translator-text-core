@@ -55,7 +55,7 @@ tradcore:
     HEALTHCHECK_PORT: '8080'
     VLIBRAS_DL_MODEL_TAG: "v1.3.4"
     VLIBRAS_FORCE_MODEL_DOWNLOAD: 'true'
-    ENABLE_DL_TRANSLATION : 'false'
+    ENABLE_DL_TRANSLATION : 'true'
     GIT_SSL_NO_VERIFY: '1'
     TRANSLATOR_QUEUE: "translate.to_text4"
     VIDEOMAKER_QUEUE: "translate.to_video"
