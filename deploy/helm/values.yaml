@@ -53,9 +53,9 @@ tradcore:
     AMQP_PREFETCH_COUNT: 1
     LOGGER_CONFIG_FILE: "/dist/config/logging-dev.ini"
     HEALTHCHECK_PORT: '8080'
-    VLIBRAS_DL_MODEL_TAG: "v1.3.0"
+    VLIBRAS_DL_MODEL_TAG: "v1.3.4"
     VLIBRAS_FORCE_MODEL_DOWNLOAD: 'true'
-    ENABLE_DL_TRANSLATION : 'true'
+    ENABLE_DL_TRANSLATION : 'false'
     GIT_SSL_NO_VERIFY: '1'
     TRANSLATOR_QUEUE: "translate.to_text4"
     VIDEOMAKER_QUEUE: "translate.to_video"
