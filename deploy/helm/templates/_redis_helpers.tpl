@@ -1,7 +1,7 @@
 {{- define "tradcoreGetRedisCache" -}}
 {{- if and .Values.global .Values.global.redis .Values.global.redis.cachename (not .Values.externalServices.tradcore.redis.cachename) }}
   {{- .Values.global.redis.cachename -}}
-{{- else if .Values.externalServices.tradcore.redis.cachename -}}``
+{{- else if .Values.externalServices.tradcore.redis.cachename -}}
   {{- .Values.externalServices.tradcore.redis.cachename -}}
 {{- else if .Values.redis.cachename -}}
   {{- .Values.redis.cachename -}}

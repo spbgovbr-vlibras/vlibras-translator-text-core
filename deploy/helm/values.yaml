@@ -39,7 +39,7 @@ global:
   
 
 tradcore:
-  replicaCount: 6
+  replicaCount: 1
   image:
     repository: "registry.sisp.gov.br/vlibras/vlibras-translator-service/vlibras-translator-text-core"
     tag: ""
@@ -53,9 +53,14 @@ tradcore:
     AMQP_PREFETCH_COUNT: 1
     LOGGER_CONFIG_FILE: "/dist/config/logging-dev.ini"
     HEALTHCHECK_PORT: '8080'
-    VLIBRAS_DL_MODEL_TAG: "v1.1.1"
+    VLIBRAS_DL_MODEL_TAG: "v1.3.4"
     VLIBRAS_FORCE_MODEL_DOWNLOAD: 'true'
-
+    ENABLE_DL_TRANSLATION : 'true'
+    GIT_SSL_NO_VERIFY: '1'
+    TRANSLATOR_QUEUE: "translate.to_text4"
+    VIDEOMAKER_QUEUE: "translate.to_video"
+    ENABLE_REFINEMENT: "false"
+    REFINEMENT_QUEUE: "refine.to_text"
 
   secrets:
     # The existingSecret field is more like a boolean. 
@@ -64,10 +69,8 @@ tradcore:
     existingSecret: "vlibras-tradutor-core-appsecret"
     
     appSecret:
-      ENABLE_DL_TRANSLATION : 'true'
-      GIT_SSL_NO_VERIFY: '1'
-      TRANSLATOR_QUEUE: "translate.to_text4"
-      VIDEOMAKER_QUEUE: "translate.to_video"
+      ABC : 'abc'
+      
 
   service:
     type: ClusterIP

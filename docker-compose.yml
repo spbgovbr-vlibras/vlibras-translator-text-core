@@ -13,6 +13,8 @@ services:
       AMQP_PREFETCH_COUNT: 1
       TRANSLATOR_QUEUE: "translate.to_text"
       ENABLE_DL_TRANSLATION: "true"
+      ENABLE_REFINEMENT: "false"
+      REFINEMENT_QUEUE: "refine.to_text"
       HEALTHCHECK_PORT: 80
     depends_on:
       - rabbitmq

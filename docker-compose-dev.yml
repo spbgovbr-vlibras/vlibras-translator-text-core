@@ -1,0 +1,36 @@
+services:
+  vlibras-translator-text-core:
+    build: .
+    networks:
+      - rabbitmq-net
+    env_file:
+      - .env
+      - .env.docker-compose-dev
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    networks:
+      - rabbitmq-net
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ./rabbitmq-dev.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${AMQP_USER}
+      RABBITMQ_DEFAULT_PASS: ${AMQP_PASS}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+networks:
+  rabbitmq-net:
+
+volumes:
+  rabbitmq-data:
